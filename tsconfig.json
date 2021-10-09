@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "skipLibCheck": true,
+    "lib": ["ES2019"],
+    "module": "ES6",
+    "rootDir": "./",
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "strict": true
+  },
+  "include": ["src"]
+}
