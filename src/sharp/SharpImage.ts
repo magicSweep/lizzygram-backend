@@ -48,17 +48,33 @@ export const resize = (
     .rotate()
     .toFile(pathToResizedFile);
 
+/* const pipeline = sharp(src).resize(size, size, {
+    fit: "inside"
+  });
+  const getOptimizedForBase64 = pipeline.clone().normalise().modulate({
+    saturation: 1.2,
+    brightness: 1
+  }).removeAlpha().toBuffer({
+    resolveWithObject: true
+  }); */
+
 export const base64 = async (pathToImage: Path, isInverted: boolean) => {
-  const resizedOptions: {
-    width?: number;
-    height?: number;
-  } = isInverted ? { height: 15 } : { width: 15 };
+  const resizedOptions: sharp.ResizeOptions = isInverted
+    ? { height: 4 }
+    : { width: 4 };
+  //resizedOptions.fit = "inside";
 
   const encode = await sharp(pathToImage)
     //.withMetadata()
     //.jpeg({ quality: 40 })
     .blur()
     .resize(resizedOptions)
+    /*  .normalise()
+    .modulate({
+      saturation: 1.2,
+      brightness: 1,
+    }) */
+    //.removeAlpha()
     .rotate()
     .toBuffer();
   return encode.toString("base64");

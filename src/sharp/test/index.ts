@@ -1,12 +1,23 @@
 import { writeFile } from "fs";
 import { resolve } from "path";
 import { promisify } from "util";
-import { photoSizes } from "../../config.js";
-import { Path } from "../../types.js";
-import * as performance from "../../utils/performance.js";
-import { makeDiffSizedPhotos } from "../SharpHelper.js";
-import { jpeg, webp, isInverted, metadata, base64 } from "../SharpImage.js";
+import { photoSizes } from "../../config";
+import { Path } from "../../types";
+import * as performance from "../../utils/performance";
+import {
+  makeDiffSizedPhotos,
+  makeBase64s,
+  makePlaceholders,
+} from "../SharpHelper.js";
+import { jpeg, webp, isInverted, metadata, base64 } from "../SharpImage";
 
+const pathToDir = resolve(process.cwd(), "src", "static");
+
+console.log("PARH----------", pathToDir);
+
+makePlaceholders(pathToDir);
+
+/*
 const base64ToFile = async (
   pathToPhoto: Path,
   isInv: boolean,
@@ -31,7 +42,7 @@ const resultPaths = new Map([
   [3840, `${resultDir}/result_3840.webp`],
 ]);
 
-const run = async () => {
+ const run = async () => {
   performance.start();
 
   // make resized photos
@@ -64,13 +75,12 @@ const run = async () => {
   }
   //const base64Str = await base64(`${resultDir}/result.jpg`, isInv);
 
-  /* promisify(writeFile)(`${resultDir}/base64.txt`, base64Str, {
-    encoding: "utf-8",
-  }); */
+  // promisify(writeFile)(`${resultDir}/base64.txt`, base64Str, {
+ //   encoding: "utf-8",
+ // }); 
 
   performance.end();
-};
-
+}; 
 performance.init();
 
-run();
+run();*/

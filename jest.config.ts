@@ -29,4 +29,5 @@ const config /* : Config.InitialOptions */ = {
 
   setupFiles: ["dotenv/config"],
 };
+
 export default config;

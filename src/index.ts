@@ -1,7 +1,10 @@
 //const express = require('express')
 import express from "express";
+import { compose } from "fmagic";
 
 const port: number = 3000;
+
+const hello = compose(() => {});
 
 const app = express();
 

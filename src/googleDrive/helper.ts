@@ -26,9 +26,13 @@ export const initDrive = (
   client_email: string,
   projectId: string
 ) => {
-  initDrive_(private_key, client_email, projectId).then((drive_) => {
-    drive = drive_ as drive_v3.Drive;
-  });
+  initDrive_(private_key, client_email, projectId)
+    .then((drive_) => {
+      drive = drive_ as drive_v3.Drive;
+    })
+    .catch((err) =>
+      console.log("GOOGLE DRIVE INIT ERROR", JSON.stringify(err))
+    );
 };
 
 export const getFileById = getFileById_(drive as drive_v3.Drive);
