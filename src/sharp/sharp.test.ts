@@ -1,9 +1,9 @@
 import { resolve } from "path";
-import { makeBase64s, makePlaceholders } from "./SharpHelper";
+import { makeBase64s, makeBase64 } from ".";
 import wait from "waait";
 
-describe("makeBase64s", () => {
-  const pathToDir = resolve(__dirname, "..", "static");
+describe.skip("makeBase64s", () => {
+  const pathToDir = resolve(process.cwd(), "src", "static");
   test.skip("", async () => {
     const res = await makeBase64s(pathToDir);
 
@@ -11,6 +11,23 @@ describe("makeBase64s", () => {
     //await wait(3000);
 
     expect(res).toEqual("hello");
+  });
+});
+
+describe("makeBase64", () => {
+  const pathToPhoto = resolve(
+    process.cwd(),
+    "src",
+    "static",
+    "freestocks-9U.jpg"
+  );
+  test("", async () => {
+    const res = await makeBase64(pathToPhoto, false);
+
+    //const res = await Promise.all(promises);
+    //await wait(3000);
+
+    expect(res.length).toEqual(96);
   });
 });
 

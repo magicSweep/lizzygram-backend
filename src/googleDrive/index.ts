@@ -1,13 +1,7 @@
 //export { drive, isFileExists, initDrive } from "./helper";
 import { google, drive_v3, GoogleApis } from "googleapis";
-import {
-  readFile,
-  readFileSync,
-  createWriteStream,
-  createReadStream,
-  statSync,
-  existsSync,
-} from "fs";
+import { createWriteStream, createReadStream } from "fs";
+import { OriginalPhotoInfo } from "../types";
 
 export let drive: drive_v3.Drive | unknown = undefined;
 
@@ -22,72 +16,80 @@ const parents = [process.env.DRIVE_PARENT_ID];
 
 export const getParents = () => parents as string[];
 
-export const init_ =
-  (
-    google: GoogleApis,
-    private_key: string,
-    client_email: string,
-    projectId: string,
-    setDrive: (drive_: drive_v3.Drive) => void
-  ) =>
-  async () => {
-    /*   let private_key = processEnv.DRIVE_PRIVATE_KEY as string;
+export const init_ = async (
+  google: GoogleApis,
+  private_key: string,
+  client_email: string,
+  projectId: string,
+  setDrive: (drive_: drive_v3.Drive) => void
+) => {
+  /*   let private_key = processEnv.DRIVE_PRIVATE_KEY as string;
     const client_email = processEnv.DRIVE_CLIENT_EMAIL as string;
     const projectId = processEnv.PROJECT_ID as string; */
 
-    try {
-      //let private_key = process.env.DRIVE_PRIVATE_KEY;
-      if (process.env.IENV === "heroku") {
-        private_key = private_key.replace(/\\n/g, "\n");
-      }
-
-      const client = await google.auth.getClient({
-        credentials: {
-          private_key,
-          client_email,
-        },
-        //credentials,
-        scopes: "https://www.googleapis.com/auth/drive",
-        projectId,
-      });
-
-      setDrive(
-        google.drive({
-          version: "v3",
-          auth: client,
-        })
-      );
-    } catch (err) {
-      console.group("GOOGLE DRIVE INIT ERROR");
-      console.log(
-        "process.env.DRIVE_CLIENT_EMAIL",
-        process.env.DRIVE_CLIENT_EMAIL
-      );
-      console.log("ERROR", err);
-      console.log("--IENV", process.env.IENV);
-
-      console.groupEnd();
+  try {
+    //let private_key = process.env.DRIVE_PRIVATE_KEY;
+    if (process.env.IENV === "heroku") {
+      private_key = private_key.replace(/\\n/g, "\n");
     }
-  };
 
-export const init = init_(
-  google,
-  process.env.DRIVE_PRIVATE_KEY as string,
-  process.env.DRIVE_CLIENT_EMAIL as string,
-  process.env.PROJECT_ID as string,
-  setDrive
-);
+    const client = await google.auth.getClient({
+      credentials: {
+        private_key,
+        client_email,
+      },
+      //credentials,
+      scopes: "https://www.googleapis.com/auth/drive",
+      projectId,
+    });
 
-export const getFileById_ =
-  (getDrive: () => drive_v3.Drive) => async (fileId: string) => {
+    setDrive(
+      google.drive({
+        version: "v3",
+        auth: client,
+      })
+    );
+  } catch (err) {
+    console.group("GOOGLE DRIVE INIT ERROR");
+    console.log(
+      "process.env.DRIVE_CLIENT_EMAIL",
+      "---",
+      client_email,
+      "---",
+      process.env.DRIVE_CLIENT_EMAIL
+    );
+    console.log("ERROR", err);
+    console.log("--IENV", process.env.IENV);
+
+    console.groupEnd();
+  }
+};
+
+export const init = () =>
+  init_(
+    google,
+    process.env.DRIVE_PRIVATE_KEY as string,
+    process.env.DRIVE_CLIENT_EMAIL as string,
+    process.env.PROJECT_ID as string,
+    setDrive
+  );
+
+export const getFileInfoById_ =
+  (getDrive: () => drive_v3.Drive) =>
+  async (fileId: string): Promise<OriginalPhotoInfo> => {
     const res = await getDrive().files.get({
       fileId,
     });
 
-    return res.data;
+    const { id, name } = res.data;
+
+    return {
+      id,
+      name,
+    };
   };
 
-export const getFileById = getFileById_(getDrive);
+export const getFileInfoById = getFileInfoById_(getDrive);
 
 export const isFileExists_ =
   (getFileById: (fileId: string) => Promise<drive_v3.Schema$File>) =>
@@ -105,33 +107,47 @@ export const isFileExists_ =
     }
   };
 
-export const isFileExists = isFileExists_(getFileById);
+export const isFileExists = isFileExists_(getFileInfoById);
 
-export const getAllFiles_ =
+export const getAllFilesInfo_ =
   (getDrive: () => drive_v3.Drive) =>
-  async (limit: number = 10) => {
+  async (limit: number = 100): Promise<OriginalPhotoInfo[] | undefined> => {
     const res = await getDrive().files.list({
       pageSize: limit,
       //files: "nextPageToken, files(id, name)",
     });
 
-    return res.data.files;
+    const files = res.data.files;
+
+    if (files === undefined) return files;
+
+    return (res.data.files as drive_v3.Schema$File[]).map((file, i) => ({
+      id: file.id,
+      name: file.name,
+    }));
   };
 
-export const getAllFiles = getAllFiles_(getDrive);
+export const getAllFilesInfo = getAllFilesInfo_(getDrive);
 
 // GOOGLE DRIVE CAN STORE MANY FILES WITH SAME NAME
 // FOR SIMPLISITY WE CLAIM - ONE NAME - ONE ID
 export const searchFileByName_ =
-  (getDrive: () => drive_v3.Drive) => async (name: string) => {
+  (getDrive: () => drive_v3.Drive) =>
+  async (photoName: string): Promise<OriginalPhotoInfo | undefined> => {
     const res = await getDrive().files.list({
-      q: `name='${name}'`,
+      q: `name='${photoName}'`,
       //fields: "nextPageToken, items(id, title)",
     });
 
-    return res.data.files !== undefined /* && res.data.files.length === 1 */
-      ? res.data.files[0]
-      : undefined;
+    if (res.data.files === undefined || res.data.files.length === 0)
+      return undefined;
+
+    const { id, name } = res.data.files[0];
+
+    return {
+      id,
+      name,
+    };
   };
 
 export const searchFileByName = searchFileByName_(getDrive);
@@ -140,7 +156,7 @@ export const getFileIdByItsName_ =
   (searchFileByName_: typeof searchFileByName) => async (name: string) => {
     const fileData = await searchFileByName_(name);
 
-    return fileData ? fileData.id : undefined;
+    return fileData !== undefined ? fileData.id : undefined;
     //await googleDrive.deleteFile(fileData.id);
   };
 
@@ -160,7 +176,7 @@ export const downloadImageStream_ =
 
 export const downloadImageStream = downloadImageStream_(getDrive);
 
-export const downloadImageFromDrive_ =
+export const downloadImage_ =
   (getDrive: () => drive_v3.Drive) =>
   async (fileId: string, destPath: string) => {
     const dest = createWriteStream(destPath);
@@ -192,14 +208,18 @@ export const downloadImageFromDrive_ =
     });
   };
 
-export const downloadImageFromDrive = downloadImageFromDrive_(getDrive);
+export const downloadImage = downloadImage_(getDrive);
 
-export const uploadImageToDrive_ =
+export const uploadImage_ =
   (getDrive: () => drive_v3.Drive, getParents: () => string[]) =>
-  (fileName: string, pathToPhoto: string, mimeType: string = "image/jpeg") => {
+  async (
+    fileName: string,
+    pathToPhoto: string,
+    mimeType: string = "image/jpeg"
+  ): Promise<OriginalPhotoInfo> => {
     //const fileSize = statSync(pathToPhoto).size;
 
-    return getDrive().files.create(
+    const res = await getDrive().files.create(
       {
         requestBody: {
           parents: getParents(),
@@ -220,24 +240,35 @@ export const uploadImageToDrive_ =
       },
     } */
     );
+
+    const { id, name } = res.data;
+
+    return {
+      id,
+      name,
+    };
   };
 
-export const uploadImageToDrive = uploadImageToDrive_(getDrive, getParents);
+export const uploadImage = uploadImage_(getDrive, getParents);
 
 export const updateImageFile_ =
   (getDrive: () => drive_v3.Drive) =>
-  (
+  async (
     fileId: string,
     pathToPhotoFile: string,
     mimeType: string = "image/jpeg"
-  ) => {
-    return getDrive().files.update({
+  ): Promise<OriginalPhotoInfo> => {
+    const res = await getDrive().files.update({
       fileId,
       media: {
         mimeType,
         body: createReadStream(pathToPhotoFile),
       },
     });
+
+    const { id, name } = res.data;
+
+    return { id, name };
 
     //console.log(`Response - ${JSON.stringify(res)}`);
   };

@@ -1,17 +1,36 @@
-//const express = require('express')
-import express from "express";
-import { compose } from "fmagic";
+import { init } from "./init";
+import {
+  //herokuPingUrl,
+  selfDomainNameHeroku,
+  selfDomainNameLocal,
+} from "./config";
 
-const port: number = 3000;
+const port = parseInt(process.env.PORT as string, 10) || 3009;
 
-const hello = compose(() => {});
+let server: any;
 
-const app = express();
+const start = async () => {
+  const app = await init();
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
+  server = app.listen(port, () => {
+    console.log(`> Ready on http://localhost:${port}`);
+  });
+};
+
+process.on("unhandledRejection", (err: Error) => {
+  console.error(err.name, err.message);
+
+  server.close(() => {
+    process.exit(1);
+  });
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+process.on("SIGTERM", () => {
+  console.error("SIGTERM received");
+
+  server.close(() => {
+    process.exit(1);
+  });
 });
+
+start();

@@ -1,5 +1,5 @@
 import { writeFile } from "fs";
-import { resolve } from "path";
+/* import { resolve } from "path";
 import { promisify } from "util";
 import { photoSizes } from "../../config";
 import { Path } from "../../types";
@@ -8,14 +8,14 @@ import {
   makeDiffSizedPhotos,
   makeBase64s,
   makePlaceholders,
-} from "../SharpHelper.js";
+} from ".";
 import { jpeg, webp, isInverted, metadata, base64 } from "../SharpImage";
 
 const pathToDir = resolve(process.cwd(), "src", "static");
 
 console.log("PARH----------", pathToDir);
 
-makePlaceholders(pathToDir);
+makePlaceholders(pathToDir); */
 
 /*
 const base64ToFile = async (
