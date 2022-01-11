@@ -84,6 +84,10 @@ const res = {
   googleDriveId: "googleDriveId",
 });
 
+const logger = {
+  log: jest.fn(),
+};
+
 describe("addPhotoMiddleware", () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -95,7 +99,7 @@ describe("addPhotoMiddleware", () => {
       body: undefined,
     };
 
-    let result: any = await addPhotoMiddleware(
+    let result: any = await addPhotoMiddleware(logger as any)(
       anotherReq as any,
       res as any,
       {} as any
@@ -113,7 +117,7 @@ describe("addPhotoMiddleware", () => {
       "No firebase record"
     );
 
-    let result: any = await addPhotoMiddleware(
+    let result: any = await addPhotoMiddleware(logger as any)(
       req as any,
       res as any,
       {} as any
@@ -143,7 +147,7 @@ describe("addPhotoMiddleware", () => {
 
     (getPhoto as jest.Mock).mockRejectedValueOnce("Some firestore error");
 
-    await addPhotoMiddleware(req as any, res as any, {} as any);
+    await addPhotoMiddleware(logger as any)(req as any, res as any, {} as any);
 
     expect(result).toEqual({ data: {}, status: "error" });
 
@@ -161,7 +165,7 @@ describe("addPhotoMiddleware", () => {
 
     (getPhoto as jest.Mock).mockResolvedValueOnce("photo");
 
-    let result: any = await addPhotoMiddleware(
+    let result: any = await addPhotoMiddleware(logger as any)(
       req as any,
       res as any,
       {} as any
@@ -171,7 +175,7 @@ describe("addPhotoMiddleware", () => {
   });
 
   test("If all okey", async () => {
-    let result: any = await addPhotoMiddleware(
+    let result: any = await addPhotoMiddleware(logger as any)(
       req as any,
       res as any,
       {} as any

@@ -14,11 +14,8 @@ import {
   thenDoneFlat,
 } from "fmagic";
 import {
-  FirestoreDate,
-  FrontendRequestBody,
   Path,
   Width,
-  Photo,
   PhotoInfo,
   WebImageInfo,
   TransformedImageInfo,
@@ -49,43 +46,58 @@ import {
   onSuccessResponseOnAdd,
   onErrorResponse,
 } from "./../Photos.controller";
+import { Logger } from "winston";
 
-export const addPhotoMiddleware = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) =>
-  compose<unknown, AddPhotoData>(
-    // Get request params
-    () =>
-      req.file === undefined
-        ? Done.of({ data: {}, error: `We have no photo file...` })
-        : NI_Next.of({
-            reqInfo: {
-              photoFile: req.file as any,
-              photoId: req.body.photoId,
-              userUid: req.body.userUid,
-            },
-          }),
-    // We make validation OF REQ PARAMS(photoId, userUid, photoFile) in multer fileFilter
-    // But if in request we do not get file - multer do not make fileFilter validation at all
-    /* chain((data: AddPhotoData) =>
+export const addPhotoMiddleware =
+  (logger: Logger) => async (req: Request, res: Response, next: NextFunction) =>
+    compose<unknown, AddPhotoData>(
+      // Get request params
+      () =>
+        req.file === undefined
+          ? Done.of({ data: {}, error: `We have no photo file...` })
+          : NI_Next.of({
+              reqInfo: {
+                photoFile: req.file as any,
+                photoId: req.body.photoId,
+                userUid: req.body.userUid,
+              },
+            }),
+      // We make validation OF REQ PARAMS(photoId, userUid, photoFile) in multer fileFilter
+      // But if in request we do not get file - multer do not make fileFilter validation at all
+      /* chain((data: AddPhotoData) =>
       data.reqInfo.photoFile === undefined
         ? Done.of({ data, error: `We have no photo file...` })
         : NI_Next.of(data)
     ), */
-    // Check firestore record with that photoId
-    chain(checkFirestoreRecordOnAdd),
-    // make photo metricks info and paths to optimized photos
-    then(chain(makePhotoInfoAndPathsToOptimizedPhotos)),
-    // make optimized by width photos and base 64 string
-    then(chain(makeOptimizedPhotosAndBase64String)),
-    // upload files to cloudinary
-    then(chain(uploadPhotosToPhotosWebStorage)),
-    // make photo data and add it in to firestore
-    then(chain(makePhotoDataAndSendToDbOnAdd)),
-    // save original photo to google drive and update googleDriveId field on firestore
-    then(map(tap(savePhotoToOriginalPhotoStorage))),
-    // clean up and send error or success response
-    thenDoneFlat(fold(onErrorResponse(res, false), onSuccessResponseOnAdd(res)))
-  )();
+      map(
+        tap((data: any) =>
+          logger.log("info", "STAGE 0", {
+            DATA: data,
+          })
+        )
+      ),
+      // Check firestore record with that photoId
+      chain(checkFirestoreRecordOnAdd),
+      // make photo metricks info and paths to optimized photos
+      then(chain(makePhotoInfoAndPathsToOptimizedPhotos)),
+      then(map(tap((data: any) => console.log("STAGE 1", data)))),
+      // make optimized by width photos and base 64 string
+      then(chain(makeOptimizedPhotosAndBase64String)),
+      then(map(tap((data: any) => console.log("STAGE 2", data)))),
+      // upload files to cloudinary
+      then(chain(uploadPhotosToPhotosWebStorage)),
+      then(map(tap((data: any) => console.log("STAGE 3", data)))),
+      // make photo data and add it in to firestore
+      then(chain(makePhotoDataAndSendToDbOnAdd)),
+      then(map(tap((data: any) => console.log("STAGE 4", data)))),
+      // save original photo to google drive and update googleDriveId field on firestore
+      then(map(tap(savePhotoToOriginalPhotoStorage))),
+      then(map(tap((data: any) => console.log("STAGE 5", data)))),
+      // clean up and send error or success response
+      thenDoneFlat(
+        fold(
+          onErrorResponse(res, logger, false),
+          onSuccessResponseOnAdd(res, logger)
+        )
+      )
+    )();

@@ -1,3 +1,13 @@
+import {
+  Photo,
+  FirestoreDate,
+  ResponseStatus,
+  JsonString,
+  DateUTCString,
+  ImgExt,
+  WorkerRequest,
+} from "lizzygram-common-data/dist/types";
+
 export type OriginalPhotoInfo = {
   id?: string | null;
   name?: string | null;
@@ -37,8 +47,8 @@ export type PhotoWebId = string;
 export type WebSecureUrl = string;
 
 // COMMON TYPES
-export type ImgExt = "jpeg" | "jpg" | "png";
-export type FirestoreDate = {
+//export type ImgExt = "jpeg" | "jpg" | "png";
+/* export type FirestoreDate = {
   toDate: () => Date;
 };
 
@@ -65,7 +75,7 @@ export interface Photo<T> {
   addedByUserUID: string;
   // do we make changes by express
   isActive: boolean;
-}
+} */
 
 export type PhotoFieldsToUpdateOnAdd = {
   base64: string;
@@ -92,9 +102,9 @@ export type PhotoFieldsToUpdateOnEdit = PhotoFieldsToUpdateOnAdd & {
   };
 };
 
-export type ResponseStatus = "successs" | "error";
+//export type ResponseStatus = "successs" | "error";
 
-export type WorkerResponse = {
+/* export type WorkerResponse = {
   status: ResponseStatus;
   data?: {
     [name: string]: any;
@@ -103,23 +113,25 @@ export type WorkerResponse = {
     msg: string;
     code?: number;
   };
-};
+}; */
 
-export type JsonString = string;
+//export type JsonString = string;
 
-export type FrontendRequestBody = {
+export type FrontendRequestBody = WorkerRequest;
+
+/* export type FrontendRequestBody = {
   photoFile: Express.Multer.File;
   photoId: string;
   userUid: string;
   description?: string;
   date?: DateUTCString;
   tags?: JsonString;
-};
+}; */
 
-export type TagsData = { [id: string]: boolean };
+//export type TagsData = { [id: string]: boolean };
 
 // Date.toUTCString();
-export type DateUTCString = string;
+//export type DateUTCString = string;
 
 /* interface MulterBody {
   file: Express.Multer.File;

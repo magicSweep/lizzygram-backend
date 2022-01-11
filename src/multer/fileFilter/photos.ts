@@ -8,7 +8,7 @@ import {
   isValidDesc,
   isValidTags,
 } from "../../photos/service/Validator";
-import { DateUTCString, JsonString } from "../../types";
+import { DateUTCString, JsonString } from "lizzygram-common-data/dist/types";
 
 export type AddPhotoFileFilterData = {
   photoFile: Express.Multer.File;

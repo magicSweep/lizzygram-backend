@@ -22,9 +22,9 @@ describe("Validator", () => {
       { count: 2, date: "hello", expected: "Некорректная дата | hello" },
       { count: 3, date: "", expected: "Некорректная дата | " },
 
-      { count: 4, date: null as any, expected: "До дня рождения? | null" },
+      { count: 4, date: null as any, expected: "Неверный формат даты | null" },
 
-      { count: 5, date: 13 as any, expected: "До дня рождения? | 13" },
+      { count: 5, date: 13 as any, expected: "Неверный формат даты | 13" },
 
       {
         count: 6,
@@ -131,12 +131,12 @@ describe("Validator", () => {
       {
         count: 3,
         tags: 13 as any,
-        expected: "Wrong tags | 13",
+        expected: "Какая-то ошибочка... | -2342- | 13",
       },
       {
         count: 4,
         tags: null as any,
-        expected: "Wrong tags | null",
+        expected: "Какая-то ошибочка... | -2342- | null",
       },
       {
         count: 5,
@@ -155,7 +155,7 @@ describe("Validator", () => {
       {
         count: 0,
         photoFile: undefined as any,
-        expected: "We've got no photo file",
+        expected: "Неверный тип файла - undefined",
       },
       // mimetype, size
       {
@@ -178,19 +178,19 @@ describe("Validator", () => {
       {
         count: 3,
         photoFile: null,
-        expected: "Wrong file - null",
+        expected: "Неверный тип файла - null",
       },
 
       {
         count: 4,
         photoFile: {},
-        expected: "Wrong file - {}",
+        expected: "Неверный тип файла - {}",
       },
 
       {
         count: 5,
         photoFile: 13,
-        expected: "Wrong file - 13",
+        expected: "Неверный тип файла - 13",
       },
 
       {

@@ -1,1 +1,1 @@
-export { mainLog as logMiddleware } from "./middleware";
+export { logger as winstonLogger } from "./winston";

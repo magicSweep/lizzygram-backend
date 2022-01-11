@@ -17,7 +17,8 @@ import {
   //wherokuPingUrl,
   downloadPhotoUrl,
 } from "./config";
-import { logMiddleware } from "./logger";
+import { requestLog as requestLogMiddleware } from "./middleware/requestLog";
+import { errorHandler as globalErrorHandlerMiddleware } from "./middleware/globalErrorHandler";
 //import { downloadOriginalPhoto } from "./middleware/downloadOriginalPhoto";
 import { existsSync, mkdirSync } from "fs";
 // PROTECT
@@ -31,8 +32,8 @@ import { init as initCloudinary } from "./cloudinary/cloudinary.fake";
 import { init as initFirestore } from "./firestore";
 import { init as initGoogleDrive } from "./googleDrive";
 import { init as initCloudinary } from "./cloudinary";
-import { WorkerResponse } from "./types";
-import { join } from "path";
+import { WorkerResponse } from "lizzygram-common-data/dist/types";
+import { winstonLogger } from "./logger";
 
 export const init = async () => {
   // MAKE UPLOADS AND TEMP DIRS
@@ -82,16 +83,16 @@ export const init = async () => {
     })
   );
 
-  // LOGGER
-  app.use(logMiddleware);
+  // LOG REQUEST
+  app.use(requestLogMiddleware(winstonLogger));
 
-  // MAIN MIDDLEWAREs
+  // Photos MIDDLEWAREs
   app.post(
     addPhotoUrl,
     //apiLimiter,
     multerMiddleware(upload),
     //upload.single("file"),
-    addPhotoMiddleware
+    addPhotoMiddleware(winstonLogger)
   );
 
   app.post(
@@ -99,7 +100,7 @@ export const init = async () => {
     //apiLimiter,
     //upload.single("file"),
     multerMiddleware(upload),
-    editPhotoMiddleware
+    editPhotoMiddleware(winstonLogger)
   );
 
   //TODO: add download original photo middleware
@@ -108,38 +109,7 @@ export const init = async () => {
   // - send some cookie to check it request from site
 
   // GLOBAL_ERROR_HANDLER
-  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    let message = "";
-
-    if (err.message) {
-      message = `
-          MESSAGE - ${err.message} 
-          NAME - ${err.name}
-          FILENAME - ${(err as any).filename}
-          LINENUMBER - ${(err as any).lineNumber}
-          STACK - ${err.stack}
-        `;
-    } else {
-      message = JSON.stringify(err);
-    }
-
-    message = `
-        REQUEST_PATH - ${req.path}
-        REQUEST_BODY - ${req.body ? JSON.stringify(req.body) : "NO BODY"}
-        ${message}
-      `;
-
-    console.log(`[GLOBAL_ERROR_HANDLER] ${message}`);
-
-    const json: WorkerResponse = {
-      status: "error",
-      data: {
-        error: message,
-      },
-    };
-
-    res.status(200).json(json).end();
-  });
+  app.use(globalErrorHandlerMiddleware(winstonLogger));
 
   return app;
 };

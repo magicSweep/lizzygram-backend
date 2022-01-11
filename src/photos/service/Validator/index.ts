@@ -1,18 +1,24 @@
 import { compose, cond, elif } from "fmagic";
-import {
+import { DateUTCString, JsonString } from "lizzygram-common-data/dist/types";
+/* import {
   Photo,
   FirestoreDate,
-  TagsData,
-  DateUTCString,
-  JsonString,
-} from "../../../types";
+} from "lizzygram-common-data/dist/types"; */
+import { Photo, FirestoreDate } from "lizzygram-common-data/dist/types";
+
 import {
   regex,
   isLessThanMaxFileSizeMB,
   isValidFileFormat,
   hasTrueValue,
 } from "./helper";
-import {} from "multer";
+import {
+  isValidPhotoFileBackend,
+  isValidDesc as isValidDesc_,
+  isValidDate as isValidDate_,
+  isValidTags as isValidTags_,
+} from "lizzygram-common-data";
+//import {} from "multer";
 
 export const isValidPhotoDbRecord = (
   photoId: string,
@@ -109,70 +115,22 @@ export const isValidPhotoID = (photoId: string) => {
   return true;
 };
 
-export const isValidDate = cond<DateUTCString, boolean | string>([
-  [(val: string) => val === undefined, (val: Date) => true],
-  [
-    (val: string) => new Date(val).toString() === "Invalid Date",
-    (val: string) => {
-      return `Некорректная дата | ${val}`;
-    },
-  ],
-  [
-    (val: string) => new Date(val) > new Date(),
-    (val: string) => {
-      return `Фотка сделана в будущем? | ${val}`;
-    },
-  ],
-  [
-    (val: string) => new Date(val) < new Date("2018-07-08"),
-    (val: string) => {
-      return `До дня рождения? | ${val}`;
-    },
-  ],
-  [() => true, () => true],
-]);
+export const isValidDate = (date: DateUTCString | undefined) => {
+  if (date === undefined) return true;
 
-export const isValidPhotoFile = (file: Express.Multer.File) => {
-  if (file === undefined) return `We've got no photo file`;
-
-  if (
-    file === null ||
-    typeof file !== "object" ||
-    file.mimetype === undefined
-    // || file.size === undefined
-  )
-    return `Wrong file - ${JSON.stringify(file)}`;
-
-  /* 
-  // FILE SIZE WE CHECK WITH MULTER LIMITS 
-  if (isLessThanMaxFileSizeMB(21, file.size) === false) {
-    return `Максимальный размер файла 21 Mb. | ${file.size}`;
-  } */
-
-  if (isValidFileFormat(["jpeg", "png", "jpg"], file.mimetype) === false) {
-    return `Файл должен быть типа: jpeg, png, jpg | ${file.mimetype}`;
-  }
-
-  return true;
+  return isValidDate_(date);
 };
+
+export const isValidPhotoFile = isValidPhotoFileBackend;
 
 export const isValidDesc = (val: string | undefined) => {
   //console.log("VALIDATE", val);
-  if (val !== undefined && val.length > 1200) return "Слишком длинно...";
-  return true;
-};
+  //if (val !== undefined && val.length > 1200) return "Слишком длинно...";
 
-/* export const isValidTags = cond([
-  [(tags: TagsData) => tags === undefined, () => true],
-  [
-    (tags: TagsData) => typeof tags === "object",
-    (tags: TagsData) =>
-      hasTrueValue(tags) === true
-        ? true
-        : `Добавьте хотя бы один тэг. | ${JSON.stringify(tags)}`,
-  ],
-  [() => true, (tags: TagsData) => `Wrong tags | ${JSON.stringify(tags)}`],
-]); */
+  if (val === undefined) return true;
+
+  return isValidDesc_(val);
+};
 
 export const isValidTags = elif(
   (tags?: JsonString) => tags === undefined,
@@ -187,27 +145,6 @@ export const isValidTags = elif(
       }
     },
 
-    cond([
-      [
-        (tags: TagsData) => tags === null || typeof tags !== "object",
-        (tags: TagsData) => `Wrong tags | ${JSON.stringify(tags)}`,
-      ],
-      [
-        (tags: TagsData) => true,
-        (tags: TagsData) =>
-          hasTrueValue(tags) === true
-            ? true
-            : `Добавьте хотя бы один тэг. | ${JSON.stringify(tags)}`,
-      ],
-    ])
+    isValidTags_
   )
 );
-
-/* compose<TagsData, boolean | string>(
-  elif(
-    (tags?: TagsData) => typeof tags === "object",
-    hasTrueValue,
-    () => false
-  ),
-  (isTap: boolean) => isTap || "Добавьте хотя бы один тэг."
-); */

@@ -3,7 +3,6 @@ import { photoSizes } from "../../config";
 import {
   AddPhotoData,
   EditPhotoData,
-  Photo,
   WebImagesInfo,
   WebSecureUrl,
   Width,
@@ -118,12 +117,12 @@ export const makePhotoFieldsToUpdateOnEdit = (data: EditPhotoData) =>
     ),
     elif(
       () => data.reqInfo.tags !== undefined,
-      set("tags", JSON.parse(data.reqInfo.tags as string)),
+      set("tags", () => JSON.parse(data.reqInfo.tags as string)),
       justReturn
     ),
     elif(
       () => data.reqInfo.date !== undefined,
-      set("date", new Date(data.reqInfo.date as string)),
+      set("date", () => new Date(data.reqInfo.date as string)),
       justReturn
     ),
     elif(

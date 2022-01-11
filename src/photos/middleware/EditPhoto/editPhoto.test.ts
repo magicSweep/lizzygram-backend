@@ -65,6 +65,10 @@ const res = {
   },
 };
 
+const logger = {
+  log: jest.fn(),
+};
+
 (getPhoto as jest.Mock).mockResolvedValue({
   id: "photo_id",
   src: "src",
@@ -85,7 +89,7 @@ describe("editPhoto", () => {
       body: undefined,
     };
 
-    let result: any = await editPhotoMiddleware(
+    let result: any = await editPhotoMiddleware(logger as any)(
       anotherReq as any,
       res as any,
       {} as any
@@ -98,12 +102,12 @@ describe("editPhoto", () => {
     expect(result).toEqual({ data: {}, status: "error" });
   });
 
-  test.only("Firestore record not valid or some error on firestore - we remove upload photo", async () => {
+  test("Firestore record not valid or some error on firestore - we remove upload photo", async () => {
     (isValidPhotoDbRecordOnEdit as jest.Mock).mockReturnValueOnce(
       "No firebase record"
     );
 
-    let result: any = await editPhotoMiddleware(
+    let result: any = await editPhotoMiddleware(logger as any)(
       req as any,
       res as any,
       {} as any
@@ -133,7 +137,7 @@ describe("editPhoto", () => {
 
     (getPhoto as jest.Mock).mockRejectedValueOnce("Some firestore error");
 
-    await editPhotoMiddleware(req as any, res as any, {} as any);
+    await editPhotoMiddleware(logger as any)(req as any, res as any, {} as any);
 
     expect(result).toEqual({ data: {}, status: "error" });
 
@@ -151,7 +155,7 @@ describe("editPhoto", () => {
 
     (getPhoto as jest.Mock).mockResolvedValueOnce("photo");
 
-    let result: any = await editPhotoMiddleware(
+    let result: any = await editPhotoMiddleware(logger as any)(
       req as any,
       res as any,
       {} as any
@@ -160,8 +164,8 @@ describe("editPhoto", () => {
     expect(result).toEqual({ data: {}, status: "error" });
   });
 
-  test.only("If all okey", async () => {
-    let result: any = await editPhotoMiddleware(
+  test("If all okey", async () => {
+    let result: any = await editPhotoMiddleware(logger as any)(
       req as any,
       res as any,
       {} as any

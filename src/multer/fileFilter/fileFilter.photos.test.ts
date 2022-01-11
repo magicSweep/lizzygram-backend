@@ -15,7 +15,7 @@ describe("Photos file filter", () => {
 
       const res = isValidAddPhotoReqParams(data);
 
-      expect(res).toEqual("We've got no photo file");
+      expect(res).toEqual("Неверный тип файла - undefined");
     });
   });
 });

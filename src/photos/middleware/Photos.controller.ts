@@ -14,11 +14,8 @@ import {
   thenDoneFlat,
 } from "fmagic";
 import {
-  FirestoreDate,
-  FrontendRequestBody,
   Path,
   Width,
-  Photo,
   PhotoInfo,
   WebImageInfo,
   TransformedImageInfo,
@@ -35,6 +32,7 @@ import {
   ValidatorService,
   PhotoFieldsToUpdateOnEdit,
 } from "../../types";
+import { Photo, FirestoreDate } from "lizzygram-common-data/dist/types";
 import {
   isValidPhotoDbRecordOnAdd,
   isValidPhotoDbRecordOnEdit,
@@ -60,6 +58,7 @@ import {
   makePhotoFieldsToUpdateOnEdit,
 } from "./Photos.helper";
 import { photoSizes } from "../../config";
+import { Logger } from "winston";
 
 export const checkFirestoreRecordOnAdd_ =
   (
@@ -365,18 +364,23 @@ export const updatePhotoOnOriginalPhotoStorage =
 
 export const onErrorResponse_ =
   (
-    makeBeautyErrorMsg: (
+    /*  makeBeautyErrorMsg: (
       data: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>,
       isEdit?: boolean
-    ) => string,
+    ) => string, */
     removePhoto: FsService["removePhoto"],
     removePhotos: FsService["removePhotos"],
     removePhotosFromWebStore: PhotosWebStoreService["removePhotos"]
   ) =>
-  (response: Response, isEdit: boolean) =>
+  (response: Response, logger: Logger, isEdit: boolean) =>
     compose<PhotoMiddlewareDone<AddPhotoData | EditPhotoData>, void>(
       tap((val: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) =>
-        console.log(makeBeautyErrorMsg(val, isEdit))
+        //console.log(makeBeautyErrorMsg(val, isEdit))
+
+        //${isEdit === true ? "EDIT" : "ADD"} PHOTO ERROR
+        logger.log("error", `${isEdit === true ? "EDIT" : "ADD"} PHOTO ERROR`, {
+          INFO: val,
+        })
       ),
       // remove upload file
       elif<
@@ -435,7 +439,7 @@ export const onErrorResponse_ =
     );
 
 export const onErrorResponse = onErrorResponse_(
-  makeBeautyErrorMsg,
+  //makeBeautyErrorMsg,
   removePhoto,
   removePhotos,
   removePhotosFromWebStore
@@ -445,8 +449,8 @@ export const onErrorResponse = onErrorResponse_(
 
 export const onSuccessResponseOnAdd_ =
   (removePhotos: FsService["removePhotos"]) =>
-  (response: Response) =>
-  (data: AddPhotoData | EditPhotoData) => {
+  (response: Response, logger: Logger) =>
+  (data: AddPhotoData) => {
     // clean temp optimized photos
     removePhotos([
       ...(data.optimizedPhotosPaths as Map<number, string>).values(),
@@ -454,9 +458,13 @@ export const onSuccessResponseOnAdd_ =
 
     // remove upload file in saveToGoogleDrive(after done)
 
-    console.log(`---------SUCCESS ADD PHOTO-----------`);
+    logger.log("error", "SUCCESS ADD PHOTO", {
+      DATA: data,
+    });
+
+    /*  console.log(`---------SUCCESS ADD PHOTO-----------`);
     console.log(data);
-    console.log("---------------------------");
+    console.log("---------------------------"); */
 
     return response
       .status(200)
@@ -476,7 +484,7 @@ export const onSuccessResponseOnEdit_ =
     removePhotos: FsService["removePhotos"],
     removePhotosFromWebStore: PhotosWebStoreService["removePhotos"]
   ) =>
-  (response: Response) =>
+  (response: Response, logger: Logger) =>
   (data: EditPhotoData) => {
     // clean temp optimized photos
     removePhotos([
@@ -488,9 +496,13 @@ export const onSuccessResponseOnEdit_ =
     // remove prev cloudinary images
     removePhotosFromWebStore(data.prevWebImagesIds as string[]);
 
-    console.log(`---------SUCCESS EDIT PHOTO-----------`);
+    logger.log("error", "SUCCESS EDIT PHOTO", {
+      DATA: data,
+    });
+
+    /*  console.log(`---------SUCCESS EDIT PHOTO-----------`);
     console.log(data);
-    console.log("---------------------------");
+    console.log("---------------------------"); */
 
     return response
       .status(200)

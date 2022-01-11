@@ -4,7 +4,9 @@
   deleteOne,
 } from "../../../firestore/firestore.fake"; */
 import { getOne, updateOne, deleteOne } from "../../../firestore";
-import { Photo, FirestoreDate, PhotoFieldsToUpdateOnAdd } from "../../../types";
+//import { Photo, FirestoreDate, PhotoFieldsToUpdateOnAdd } from "../../../types";
+import { Photo, FirestoreDate } from "lizzygram-common-data/dist/types";
+
 import { photosCollectionName } from "../../../config";
 
 export const getPhoto: (
