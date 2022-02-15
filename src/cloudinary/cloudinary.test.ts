@@ -2,22 +2,24 @@
  * @jest-environment node
  */
 
-/* import { v2 as cloudinary } from "cloudinary";
+/* import { v2 as cloudinary } from "cloudinary";*/
 import path from "path";
-import dotenv from "dotenv";*/
+import dotenv from "dotenv";
 
 import { existsSync } from "fs";
 
 import { resolve } from "path";
-import { uploadOne, getAll, getOneByPublicId, uploadMany } from ".";
+import { uploadOne, getAll, getOneByPublicId, uploadMany, init } from ".";
 
-//dotenv.config({ path: path.resolve(rootPath, ".env") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env.portfolio") });
 
 const pathToPhoto1 = resolve(process.cwd(), "src", "static", "ladki.jpg");
 
 const pathToPhoto2 = resolve(process.cwd(), "src", "static", "12.jpg");
 
 jest.setTimeout(10000);
+
+init();
 
 describe("cloudinary", () => {
   test("Photo file exists", () => {
@@ -76,6 +78,8 @@ describe("cloudinary", () => {
     ];
 
     const publicIds = res.resources.map((data: any) => data.public_id);
+
+    //expect(publicIds).toEqual("helo");
 
     files.forEach((publicId) => {
       expect(publicIds.includes(publicId)).toEqual(true);

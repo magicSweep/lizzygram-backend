@@ -1,10 +1,18 @@
-import sharp, { Sharp, Metadata, OutputInfo } from "sharp";
+import {
+  /* sharp, */ Sharp,
+  Metadata,
+  OutputInfo,
+  WebpOptions,
+  ResizeOptions,
+  JpegOptions,
+} from "sharp";
 import { resolve } from "path";
-import fs, { existsSync } from "fs";
+import { existsSync } from "fs";
 import { readdir, writeFile } from "fs";
 import { promisify } from "util";
 import { compose, tap, then } from "fmagic";
 import { Path, PhotoInfo, TransformedImageInfo } from "./../types";
+const sharp = require("sharp");
 //import { getPlaiceholder } from "plaiceholder";
 
 //import { TPath } from "../types";
@@ -32,7 +40,7 @@ export const getAspectRatio = (
 export const makeWebp = async (
   pathToImage: Path,
   pathToResultImage: Path,
-  options?: sharp.WebpOptions
+  options?: WebpOptions
 ): Promise<TransformedImageInfo> => {
   const res = await sharp(pathToImage)
     .webp(options)
@@ -46,6 +54,63 @@ export const makeWebp = async (
     width,
     height,
     size,
+  };
+};
+
+/* export const resizeOneWithWebp = async (
+  pathToImage: Path,
+  resizedOptions: {
+    width?: number;
+    height?: number;
+  },
+  //quality: number,
+  pathToResizedFile: Path
+): Promise<TransformedImageInfo> => {
+  const res = await sharp(pathToImage)
+    //.withMetadata()
+    .resize(resizedOptions)
+    .webp()
+    .rotate()
+    .toFile(pathToResizedFile);
+
+  const { format, width, height, size } = res;
+
+  return {
+    format,
+    width,
+    height,
+    size,
+  };
+}; */
+
+export const resizeOneToBuffer = async (
+  pathToImage: Path,
+  resizedOptions: {
+    width?: number;
+    height?: number;
+  }
+  //quality: number,
+  //pathToResizedFile: Path
+): Promise<TransformedImageInfo> => {
+  const {
+    data,
+    info: { width, height, size, format },
+  } = await sharp(pathToImage)
+    //.withMetadata()
+    .webp()
+    .resize(resizedOptions)
+    //.jpeg({ quality: quality })
+    .rotate()
+    .toBuffer({ resolveWithObject: true });
+
+  //const {width, height, size, format} = info;
+
+  return {
+    format,
+    width,
+    height,
+    size,
+    buffer: data,
   };
 };
 
@@ -76,7 +141,7 @@ export const resizeOne = async (
 };
 
 export const makeBase64 = async (pathToImage: Path, isInverted: boolean) => {
-  const resizedOptions: sharp.ResizeOptions = isInverted
+  const resizedOptions: ResizeOptions = isInverted
     ? { height: 8 } //10
     : { width: 8 };
   //resizedOptions.fit = "inside";
@@ -102,7 +167,7 @@ export const makeBase64 = async (pathToImage: Path, isInverted: boolean) => {
 export const jpeg = async (
   pathToImage: Path,
   pathToResultImage: Path,
-  options?: sharp.JpegOptions
+  options?: JpegOptions
 ): Promise<TransformedImageInfo> => {
   const res = await sharp(pathToImage).jpeg(options).toFile(pathToResultImage);
 
@@ -127,7 +192,7 @@ export const makeResizeOptions = (
 
 export const getPhotoInfo = compose<Path, Promise<PhotoInfo>>(
   getMetadata,
-  then(({ orientation, width, height, format }: sharp.Metadata) => {
+  then(({ orientation, width, height, format, size }: Metadata) => {
     const isInverted =
       orientation === undefined ? false : getIsInverted(orientation);
     return {
@@ -140,6 +205,7 @@ export const getPhotoInfo = compose<Path, Promise<PhotoInfo>>(
       imageExtention: format,
       width,
       height,
+      size,
     };
   })
 );

@@ -65,6 +65,20 @@ export const addOne =
     return true;
   };
 
+export const addMany =
+  (collectionName: string) =>
+  async <T>(docsData: T[]) => {
+    const db = getFirestore();
+
+    const promises = docsData.map((data) => {
+      return db.collection(collectionName).doc().set(data);
+    });
+
+    await Promise.all(promises);
+
+    return true;
+  };
+
 //export const addOne = addOne_(photosCollectionName);
 
 export const getAll = (collectionName: string) => async () => {
@@ -85,6 +99,18 @@ export const getAll = (collectionName: string) => async () => {
 };
 
 //export const getAll = getAll_(photosCollectionName);
+
+export const exists =
+  (collectionName: string) =>
+  async (docId: string): Promise<any | undefined> => {
+    const db = getFirestore();
+
+    const docRef = db.collection(collectionName).doc(docId);
+
+    const doc = await docRef.get();
+
+    return doc.exists;
+  };
 
 export const getOne =
   (collectionName: string) =>

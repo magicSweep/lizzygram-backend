@@ -19,6 +19,7 @@ export type PhotoInfo = {
   isInverted: boolean;
   width: number;
   height: number;
+  size?: number;
 };
 
 export type WebImageInfo = {
@@ -36,6 +37,7 @@ export type TransformedImageInfo = {
   size: number;
   width: number;
   height: number;
+  buffer?: Buffer;
 };
 
 export type Path = string;
@@ -250,12 +252,12 @@ export type OriginalPhotoStoreService = {
   save: (
     photoFileName: string,
     pathToPhoto: Path
-  ) => Promise<{ id: string; name: string }>;
+  ) => Promise<OriginalPhotoInfo>;
 
   update: (
     googleDriveId: string,
     pathToPhoto: Path
-  ) => Promise<{ id: string; name: string }>;
+  ) => Promise<OriginalPhotoInfo>;
 
   download: (fileId: string, destPath: Path) => Promise<boolean>;
 };

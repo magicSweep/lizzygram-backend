@@ -1,21 +1,84 @@
 import { writeFile } from "fs";
-/* import { resolve } from "path";
+import { resolve } from "path";
 import { promisify } from "util";
-import { photoSizes } from "../../config";
 import { Path } from "../../types";
 import * as performance from "../../utils/performance";
 import {
-  makeDiffSizedPhotos,
-  makeBase64s,
-  makePlaceholders,
-} from ".";
-import { jpeg, webp, isInverted, metadata, base64 } from "../SharpImage";
+  jpeg,
+  getPhotoInfo,
+  resizeMany,
+  makeWebp,
+  resizeOneToBuffer,
+  resizeOne,
+} from "..";
+import { makePaths_ } from "../../photos/service/PhotoTransformations";
 
-const pathToDir = resolve(process.cwd(), "src", "static");
+export const photoSizes = [
+  { width: 320, height: 180 },
+  { width: 800, height: 640 },
+  { width: 1280, height: 720 },
+  { width: 1920, height: 1080 },
+  { width: 3840, height: 2160 },
+];
 
-console.log("PARH----------", pathToDir);
+const photoName = "16189387096_96879abe89_k.jpg";
 
-makePlaceholders(pathToDir); */
+const pathToDownloadsDir = "/home/nikki/Downloads";
+const pathToResultDir = resolve(
+  process.cwd(),
+  "src",
+  "sharp",
+  "test",
+  "result"
+);
+
+const pathToPhoto = `${pathToDownloadsDir}/${photoName}`;
+
+const makePaths = makePaths_(photoSizes, pathToResultDir);
+
+const main = async (pathToPhoto: string) => {
+  const { isInverted, width, height } = await getPhotoInfo(pathToPhoto);
+
+  const randomName = `photo_${Math.round(Math.random() * 1000000)}`;
+
+  /* await makeWebp(pathToPhoto, `${pathToResultDir}/final.webp`, { quality: 80 });
+
+  await makeWebp(pathToPhoto, `${pathToResultDir}/final_1.webp`, {
+    quality: 100,
+  }); */
+
+  performance.mark("start");
+
+  const res = await resizeOneToBuffer(pathToPhoto, { height: 1920 });
+
+  performance.mark("end");
+
+  await resizeOne(
+    pathToPhoto,
+    { height: 1920 },
+    `${pathToResultDir}/${randomName}.webp`
+  );
+
+  performance.mark("end1");
+
+  performance.measure("Resize", `start`, `end`);
+
+  performance.measure("Resize to file", `end`, `end1`);
+
+  console.log("RESULT------", res);
+
+  /* await resizeMany(
+    makePaths(randomName),
+    { width, height },
+    isInverted,
+    photoSizes,
+    pathToPhoto
+  ); */
+};
+
+performance.init();
+
+main(pathToPhoto);
 
 /*
 const base64ToFile = async (

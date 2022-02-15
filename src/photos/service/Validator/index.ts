@@ -20,6 +20,14 @@ import {
 } from "lizzygram-common-data";
 //import {} from "multer";
 
+export const isValidGoogleDriveId = (id: string) => {
+  if (typeof id !== "string") return "Google drive id must be string";
+
+  if (id.length !== 33) return "Google drive id must contain 33 symbols";
+
+  return true;
+};
+
 export const isValidPhotoDbRecord = (
   photoId: string,
   photo: Photo<FirestoreDate> | undefined,
@@ -72,6 +80,32 @@ export const isValidPhotoDbRecordOnEdit = (
 
   return true;
 };
+
+// parse photo query | query = userUid(28) + googleDriveId(33)
+export const isValidPhotoQuery = cond<string, string | true>([
+  [
+    (photoQuery: string) => typeof photoQuery !== "string",
+    (photoQuery: string) => {
+      return `photoQuery must be  string | ${JSON.stringify(photoQuery)}`;
+    },
+  ],
+  [
+    (photoQuery: string) => photoQuery.length !== 61,
+    (photoQuery: string) => {
+      return `photoQuery must contain 61 symbol...${
+        photoQuery.length > 65 ? photoQuery.substring(0, 64) : photoQuery
+      }`;
+    },
+  ],
+  [
+    (photoQuery: string) =>
+      regex(photoQuery, { pattern: /[a-zA-Z0-9]*/ }) === false,
+    (photoQuery: string) => {
+      return `Bad symbols in photoQuery... | ${JSON.stringify(photoQuery)}`;
+    },
+  ],
+  [() => true, () => true],
+]);
 
 export const isValidUserUid = cond<string | undefined, string | boolean>([
   [

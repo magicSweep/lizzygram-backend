@@ -2,6 +2,7 @@ import { join } from "path";
 
 // photos
 export const photosCollectionName = "photos";
+export const usersCollectionName = "users";
 /// export const PHOTOS_FIRESTORE_COLLECTION_NAME =
 //  process.env.NODE_ENV === "test" ? "phototest" : "photos";
 //export const PHOTOS_FIRESTORE_COLLECTION_NAME = "photos";
@@ -12,9 +13,8 @@ export const pathToUploadFilesDir = join(process.cwd(), "upload");
 
 // EXPRESS PATHS
 
-export const selfDomainNameHeroku = "lizzygram.herokuapp.com";
+//export const selfDomainNameHeroku = "lizzygram.herokuapp.com";
 //export const selfDomainNameLocal = "localhost";
-export const selfDomainNameLocal = "localhost";
 
 //export const port = 80;
 
@@ -23,7 +23,7 @@ export const editPhotoUrl = "/edit-photo";
 // Dyno do not sleep
 //export const herokuPingUrl = "/sleep_q23we4rt5";
 // Download original photo from google drive
-export const downloadPhotoUrl = "/download/:photoId";
+export const downloadPhotoUrl = "/download/:photoQuery";
 
 //export const photoWidths = [400, 800, 1200, 1600, 1900];
 //export const photoHeights = [300, 600, 700, 900, 1000];

@@ -1,6 +1,7 @@
-import { resolve } from "path";
+import { join, resolve } from "path";
 import { makeBase64s, makeBase64 } from ".";
 import wait from "waait";
+import sharp from "sharp";
 
 describe.skip("makeBase64s", () => {
   const pathToDir = resolve(process.cwd(), "src", "static");
@@ -13,6 +14,15 @@ describe.skip("makeBase64s", () => {
     expect(res).toEqual("hello");
   });
 });
+
+/* test("png", async () => {
+  const pathToFile = `/home/nikki/Documents/Project/new_lizzygram/frontend-gatsby_materialui/src/icons/favicon_color_512x512.png`;
+  const pathToResult = join(process.cwd(), "src/sharp/test/result/icon.png");
+
+  await sharp(pathToFile).png().toFile(pathToResult);
+
+  expect(true).toEqual(true);
+}); */
 
 describe("makeBase64", () => {
   const pathToPhoto = resolve(

@@ -12,9 +12,15 @@ export const setDrive = (drive_: drive_v3.Drive) => {
 
 export const getDrive = () => drive as drive_v3.Drive;
 
-const parents = [process.env.DRIVE_PARENT_ID];
+let parents: string[] = [];
 
-export const getParents = () => parents as string[];
+export const getParents = () => {
+  if (parents.length === 0) {
+    parents.push(process.env.DRIVE_PARENT_ID as string);
+  }
+
+  return parents;
+};
 
 export const init_ = async (
   google: GoogleApis,
@@ -74,6 +80,25 @@ export const init = () =>
     setDrive
   );
 
+export const createFolder_ =
+  (getDrive: () => drive_v3.Drive) =>
+  async (name: string): Promise<any> => {
+    const fileMetadata = {
+      name,
+      mimeType: "application/vnd.google-apps.folder",
+    };
+
+    const res = await getDrive().files.create({
+      //@ts-ignore
+      resource: fileMetadata,
+      fields: "id",
+    });
+
+    return res;
+  };
+
+export const createFolder = createFolder_(getDrive);
+
 export const getFileInfoById_ =
   (getDrive: () => drive_v3.Drive) =>
   async (fileId: string): Promise<OriginalPhotoInfo> => {
@@ -124,6 +149,8 @@ export const getAllFilesInfo_ =
     return (res.data.files as drive_v3.Schema$File[]).map((file, i) => ({
       id: file.id,
       name: file.name,
+      parents: file.parents,
+      mimeType: file.mimeType,
     }));
   };
 

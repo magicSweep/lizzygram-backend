@@ -48,7 +48,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.updateOne = exports.deleteOne = exports.getOne = exports.getAll = exports.addOne = exports.init = void 0;
+exports.updateOne = exports.deleteOne = exports.getOne = exports.getAll = exports.addMany = exports.addOne = exports.init = void 0;
 // JEST DO NOT WORK WITH THAT KINDA IMPORTS
 var app_1 = require("firebase-admin/app");
 //import { credential } from "firebase-admin/lib";
@@ -104,6 +104,25 @@ var addOne = function (collectionName) {
     }); };
 };
 exports.addOne = addOne;
+var addMany = function (collectionName) {
+    return function (docsData) { return __awaiter(void 0, void 0, void 0, function () {
+        var db, promises;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    db = (0, firestore_1.getFirestore)();
+                    promises = docsData.map(function (data) {
+                        return db.collection(collectionName).doc().set(data);
+                    });
+                    return [4 /*yield*/, Promise.all(promises)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, true];
+            }
+        });
+    }); };
+};
+exports.addMany = addMany;
 //export const addOne = addOne_(photosCollectionName);
 var getAll = function (collectionName) { return function () { return __awaiter(void 0, void 0, void 0, function () {
     var db, snapshot, result;

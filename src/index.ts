@@ -1,9 +1,9 @@
 import { init } from "./init";
-import {
+/* import {
   //herokuPingUrl,
   selfDomainNameHeroku,
   selfDomainNameLocal,
-} from "./config";
+} from "./config"; */
 
 const port = parseInt(process.env.PORT as string, 10) || 3009;
 
@@ -13,7 +13,7 @@ const start = async () => {
   const app = await init();
 
   server = app.listen(port, () => {
-    console.log(`> Ready on http://localhost:${port}`);
+    console.log(`> Ready on port: ${port}`);
   });
 };
 

@@ -3,11 +3,17 @@
  */
 import {
   addOne as addOne_,
+  addMany as addMany_,
   init,
   getOne as getOne_,
   getAll as getAll_,
 } from ".";
+import * as path from "path";
 import * as dotenv from "dotenv";
+import { tags } from "../mock/tags";
+
+dotenv.config({ path: path.resolve(process.cwd(), ".env.portfolio") });
+
 import { Timestamp } from "firebase-admin/firestore";
 
 // WE CAN NOT USE JEST TO TEST THIS, CAUSE JEST DO NOT UNDERSTAND IMPORTS LIKE "firebase-admin/firestore"
@@ -15,8 +21,7 @@ import { Timestamp } from "firebase-admin/firestore";
 // $ node src/firestore/example.js
 
 const photosCollectionName = "photos";
-
-dotenv.config();
+const tagsCollectionName = "tags";
 
 init();
 
@@ -31,6 +36,12 @@ addOne({
 
 getAll().then((res) => console.log("[RESULT]", res)); */
 
-const getOne = getOne_(photosCollectionName);
+/* const getOne = getOne_(photosCollectionName);
 
-getOne("1640123290892").then((res) => console.log("[RESULT]", res));
+getOne("3v4xjUQHp8S4P52ifQvU").then((res) => console.log("[RESULT]", res)); */
+
+const addMany = addMany_(tagsCollectionName);
+
+addMany(tags)
+  .then(() => console.log("SUCCESS ADD", tags))
+  .catch((err: any) => console.error(err));

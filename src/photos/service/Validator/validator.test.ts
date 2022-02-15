@@ -5,6 +5,7 @@ import {
   isValidTags,
   isValidPhotoFile,
   isValidDesc,
+  isValidPhotoQuery,
   isValidPhotoDbRecordOnAdd,
   isValidPhotoDbRecordOnEdit,
 } from ".";
@@ -69,6 +70,38 @@ describe("Validator", () => {
 
     test.each(possibilities)(" - ${count}", ({ userUid, expected }) => {
       expect(isValidUserUid(userUid)).toBe(expected);
+    });
+  });
+
+  describe("isValidPhotoQuery", () => {
+    const possibilities = [
+      {
+        count: 1,
+        photoQuery: 13 as any,
+        expected: "photoQuery must be  string | 13",
+      },
+      {
+        count: 2,
+        photoQuery: "!@#$sfdsdf",
+        expected: "photoQuery must contain 61 symbol...!@#$sfdsdf",
+      },
+      {
+        count: 2,
+        photoQuery:
+          "123456fdsdf12e2e2e2e2e2e2e2e2e123456fdsdf12e2e2e2e2e2e!;2e2e3",
+        expected:
+          'Bad symbols in photoQuery... | "123456fdsdf12e2e2e2e2e2e2e2e2e123456fdsdf12e2e2e2e2e2e!;2e2e3"',
+      },
+      {
+        count: 3,
+        photoQuery:
+          "123456fdsdf12e2e2e2e2e2e2e2e2e123456fdsdf12e2e2e2e2e2ee32e2e3",
+        expected: true,
+      },
+    ];
+
+    test.each(possibilities)(" - ${count}", ({ photoQuery, expected }) => {
+      expect(isValidPhotoQuery(photoQuery)).toBe(expected);
     });
   });
 
@@ -164,7 +197,8 @@ describe("Validator", () => {
           mimetype: "application/json",
           size: 123,
         },
-        expected: "Файл должен быть типа: jpeg, png, jpg | application/json",
+        expected:
+          "Файл должен быть типа: jpeg, png, jpg, webp | application/json",
       },
       /*  {
         count: 2,

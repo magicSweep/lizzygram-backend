@@ -57,7 +57,7 @@ describe("multer", () => {
         .attach("file", pathToWrongFile);
 
       expect(response.text).toEqual(
-        '{"status":"error","error":"Error: Файл должен быть типа: jpeg, png, jpg | video/mp2t","body":{"photoId":"hello1234567890123"}}'
+        '{"status":"error","error":"Error: Файл должен быть типа: jpeg, png, jpg, webp | video/mp2t","body":{"photoId":"hello1234567890123"}}'
       );
       //expect(response.text.includes('"status":"error"')).toEqual(true);
     });

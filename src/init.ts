@@ -8,7 +8,12 @@ import {
   limits,
   multerMiddleware,
 } from "./multer";
-import { addPhotoMiddleware, editPhotoMiddleware } from "./photos";
+import {
+  addPhotoMiddleware,
+  editPhotoMiddleware,
+  performanceMiddleware,
+  downloadPhotoMiddleware,
+} from "./photos";
 import {
   pathToUploadFilesDir,
   pathToOptimizedPhotosDir,
@@ -32,8 +37,9 @@ import { init as initCloudinary } from "./cloudinary/cloudinary.fake";
 import { init as initFirestore } from "./firestore";
 import { init as initGoogleDrive } from "./googleDrive";
 import { init as initCloudinary } from "./cloudinary";
-import { WorkerResponse } from "lizzygram-common-data/dist/types";
+//import { WorkerResponse } from "lizzygram-common-data/dist/types";
 import { winstonLogger } from "./logger";
+import { getBuildFor } from "lizzygram-common-data";
 
 export const init = async () => {
   // MAKE UPLOADS AND TEMP DIRS
@@ -46,8 +52,15 @@ export const init = async () => {
   }
 
   // SET ENV VARIABLES
+  console.log("INIT", getBuildFor());
+  console.log("ENV", process.env.NODE_ENV);
+
   if (process.env.IENV === "local") {
-    dotenv.config({ path: resolve(process.cwd(), ".env") });
+    if (getBuildFor() === "lizzygram") {
+      dotenv.config({ path: resolve(process.cwd(), ".env.lizzygram") });
+    } else {
+      dotenv.config({ path: resolve(process.cwd(), ".env.portfolio") });
+    }
   }
 
   // MULTER
@@ -78,6 +91,7 @@ export const init = async () => {
         "http://localhost:8080",
         "http://localhost:8000",
         "https://lizzygram.netlify.app",
+        "https://photo-boom.vercel.app",
       ],
       methods: "POST,OPTIONS",
     })
@@ -101,6 +115,22 @@ export const init = async () => {
     //upload.single("file"),
     multerMiddleware(upload),
     editPhotoMiddleware(winstonLogger)
+  );
+
+  app.get(
+    downloadPhotoUrl,
+    //apiLimiter,
+    //upload.single("file"),
+    //multerMiddleware(upload),
+    downloadPhotoMiddleware(winstonLogger)
+  );
+
+  app.post(
+    "/photo-performance",
+    //apiLimiter,
+    //upload.single("file"),
+    multerMiddleware(upload),
+    performanceMiddleware(winstonLogger)
   );
 
   //TODO: add download original photo middleware
