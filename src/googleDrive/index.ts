@@ -2,6 +2,7 @@
 import { google, drive_v3, GoogleApis } from "googleapis";
 import { createWriteStream, createReadStream } from "fs";
 import { OriginalPhotoInfo } from "../types";
+import { Logger } from "winston";
 
 export let drive: drive_v3.Drive | unknown = undefined;
 
@@ -27,7 +28,8 @@ export const init_ = async (
   private_key: string,
   client_email: string,
   projectId: string,
-  setDrive: (drive_: drive_v3.Drive) => void
+  setDrive: (drive_: drive_v3.Drive) => void,
+  logger: Logger
 ) => {
   /*   let private_key = processEnv.DRIVE_PRIVATE_KEY as string;
     const client_email = processEnv.DRIVE_CLIENT_EMAIL as string;
@@ -56,28 +58,22 @@ export const init_ = async (
       })
     );
   } catch (err) {
-    console.group("GOOGLE DRIVE INIT ERROR");
-    console.log(
-      "process.env.DRIVE_CLIENT_EMAIL",
-      "---",
-      client_email,
-      "---",
-      process.env.DRIVE_CLIENT_EMAIL
-    );
-    console.log("ERROR", err);
-    console.log("--IENV", process.env.IENV);
-
-    console.groupEnd();
+    logger.log("error", "GOOGLE DRIVE INIT ERROR", {
+      clientEmail: client_email,
+      error: err,
+      ienv: process.env.IENV,
+    });
   }
 };
 
-export const init = () =>
+export const init = (logger: Logger) =>
   init_(
     google,
     process.env.DRIVE_PRIVATE_KEY as string,
     process.env.DRIVE_CLIENT_EMAIL as string,
     process.env.PROJECT_ID as string,
-    setDrive
+    setDrive,
+    logger
   );
 
 export const createFolder_ =

@@ -27,9 +27,13 @@ const pathToAnotherUploadPhoto = join(process.cwd(), "src", "static", "12.jpg");
 
 jest.setTimeout(15000);
 
+const logger = {
+  log: jest.fn(),
+};
+
 describe("Google drive", () => {
   beforeAll(async () => {
-    await init();
+    await init(logger as any);
   });
 
   test.skip("Create folder", async () => {

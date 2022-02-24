@@ -3,6 +3,7 @@ import multer, { Options } from "multer";
 import { join } from "path";
 //import { fileFilter, fileName, multerMiddleware } from "../multer";
 import request from "supertest";
+import { logger } from "../../logger/winston";
 import { multerMiddleware } from "./../middleware";
 
 const multerLimits = {
@@ -45,25 +46,7 @@ export const init = async (
 
   app.post(
     url,
-    /* (req, res, next) => {
-      upload(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-          // A Multer error occurred when uploading.
-          //console.log("MULTER ERROR");
-          next(`[MULTER ERROR] | ${err.message}`);
-        } else if (err) {
-          // An unknown error occurred when uploading.
-          //console.log("SOME ERROR");
-          next(err);
-        }
-        //console.log("MULTER");
-        // Everything went fine.
-        next();
-      });
-    }, */
-
-    multerMiddleware(upload),
-
+    multerMiddleware(upload, logger),
     async (req: Request, res: Response, next: NextFunction) => {
       console.log("------------------AFTER MULTER", req.file, req.file?.path);
 

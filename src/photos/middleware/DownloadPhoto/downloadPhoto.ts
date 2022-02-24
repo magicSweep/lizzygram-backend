@@ -21,10 +21,10 @@ import { isValidPhotoQuery as isValidPhotoQuery_ } from "../../service/Validator
 
 type DownloadPhotoMiddlewareData = {
   photoQuery: string;
-  splittedPhotoQuery: string[];
+  //splittedPhotoQuery: string[];
   userUid: string;
   googleDriveId: string;
-  extension: string;
+  //extension: string;
   resultDebug: string;
   validation: string | true;
   userExists: boolean;
@@ -40,15 +40,17 @@ export const downloadPhotoMiddleware_ =
   (req: Request, res: Response, next: NextFunction) =>
     compose(
       // get photo query from request /12weqw23rew.jpeg
-      () => req.params.photoQuery,
-      (photoQuery: string) => ({
+      () => ({
+        photoQuery: req.params.photoQuery,
+      }),
+      /*  (photoQuery: string) => ({
         photoQuery,
         splittedPhotoQuery: photoQuery.split("."),
-      }),
+      }), */
 
       // validate
       cond([
-        [
+        /*  [
           (data: DownloadPhotoMiddlewareData) =>
             data.splittedPhotoQuery.length !== 2,
           (data: DownloadPhotoMiddlewareData) =>
@@ -56,10 +58,10 @@ export const downloadPhotoMiddleware_ =
               ...data,
               resultDebug: `We got wrong photo query format...`,
             }),
-        ],
+        ], */
         [
           (data: DownloadPhotoMiddlewareData) => {
-            data.validation = isValidPhotoQuery(data.splittedPhotoQuery[0]) as
+            data.validation = isValidPhotoQuery(data.photoQuery) as
               | string
               | true;
             return data.validation !== true;
@@ -76,9 +78,9 @@ export const downloadPhotoMiddleware_ =
       // parse photo query | query = userUid(28) + googleDriveId(33)
       map((data: DownloadPhotoMiddlewareData) => ({
         ...data,
-        userUid: data.splittedPhotoQuery[0].substring(0, 28),
-        googleDriveId: data.splittedPhotoQuery[0].substring(28),
-        extension: data.splittedPhotoQuery[1],
+        userUid: data.photoQuery.substring(0, 28),
+        googleDriveId: data.photoQuery.substring(28),
+        //extension: data.splittedPhotoQuery[1],
       })),
 
       // check users grants
@@ -123,7 +125,9 @@ export const downloadPhotoMiddleware_ =
 
           const photoStream = await downloadImageStream(data.googleDriveId);
 
+          //
           res.type("application/octet-stream");
+          //res.type("image/jpeg");
           res.setHeader("Transfer-Encoding", "chunked");
 
           photoStream
@@ -151,27 +155,3 @@ export const downloadPhotoMiddleware_ =
       // send request to firestore, to check user
       // download photo
     )();
-
-/* {
-    const photoQuery = req.params.photoQuery;
-
-    return res
-      .status(200)
-      .json({
-        status: "success",
-        data: {
-          photoQuery,
-        },
-      })
-      .end();
-  }; */
-
-/*    return res
-      .status(200)
-      .json({
-        status: "success",
-        data: {
-          photoQuery,
-        },
-      })
-      .end(); */

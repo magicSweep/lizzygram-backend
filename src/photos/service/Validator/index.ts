@@ -99,7 +99,7 @@ export const isValidPhotoQuery = cond<string, string | true>([
   ],
   [
     (photoQuery: string) =>
-      regex(photoQuery, { pattern: /[a-zA-Z0-9]*/ }) === false,
+      regex(photoQuery, { pattern: /[a-zA-Z0-9-_]*/ }) === false,
     (photoQuery: string) => {
       return `Bad symbols in photoQuery... | ${JSON.stringify(photoQuery)}`;
     },

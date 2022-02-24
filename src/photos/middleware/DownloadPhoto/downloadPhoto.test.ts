@@ -65,7 +65,7 @@ describe("downloadPhotoMiddleware", () => {
       jest.clearAllMocks();
     });
 
-    test("We got no extension in our photo request param", async () => {
+    /*  test("We got no extension in our photo request param", async () => {
       req.params.photoQuery = "hello";
 
       await downloadPhotoMiddleware(logger as any)(
@@ -84,10 +84,10 @@ describe("downloadPhotoMiddleware", () => {
           splittedPhotoQuery: ["hello"],
         },
       });
-    });
+    }); */
 
     test("We got not valid photo query", async () => {
-      req.params.photoQuery = "hello.jpeg";
+      req.params.photoQuery = "photoQuery";
 
       isValidPhotoQuery.mockReturnValueOnce("Some bad fat error...");
 
@@ -102,16 +102,15 @@ describe("downloadPhotoMiddleware", () => {
 
       expect(log).toHaveBeenCalledWith("error", "DOWNLOAD PHOTO ERROR", {
         INFO: {
-          photoQuery: "hello.jpeg",
+          photoQuery: "photoQuery",
           resultDebug: "Validation not pass...",
-          splittedPhotoQuery: ["hello", "jpeg"],
           validation: "Some bad fat error...",
         },
       });
     });
 
     test("User has no grants to download photo", async () => {
-      req.params.photoQuery = "hello.jpeg";
+      req.params.photoQuery = "photoQuery";
 
       isValidPhotoQuery.mockReturnValueOnce(true);
 
@@ -128,13 +127,13 @@ describe("downloadPhotoMiddleware", () => {
 
       expect(log).toHaveBeenCalledWith("error", "DOWNLOAD PHOTO ERROR", {
         INFO: {
-          extension: "jpeg",
+          //extension: "jpeg",
           googleDriveId: "",
-          photoQuery: "hello.jpeg",
+          photoQuery: "photoQuery",
           resultDebug: "User does not have grants to download photo...",
-          splittedPhotoQuery: ["hello", "jpeg"],
+          //splittedPhotoQuery: ["hello", "jpeg"],
           userExists: false,
-          userUid: "hello",
+          userUid: "photoQuery",
           validation: true,
         },
       });

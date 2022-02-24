@@ -28,8 +28,8 @@ import { errorHandler as globalErrorHandlerMiddleware } from "./middleware/globa
 import { existsSync, mkdirSync } from "fs";
 // PROTECT
 import cors from "cors";
-//import helmet from "helmet";
-//import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 /* import { init as initFirestore } from "./firestore/firestore.fake";
 import { init as initGoogleDrive } from "./googleDrive/googleDrive.fake";
 import { init as initCloudinary } from "./cloudinary/cloudinary.fake";
@@ -74,12 +74,14 @@ export const init = async () => {
   initCloudinary();
 
   // GOOGLE DRIVE
-  await initGoogleDrive();
+  await initGoogleDrive(winstonLogger);
 
   // FIRESTORE
   initFirestore();
 
   const app = express();
+
+  app.use(helmet());
 
   //TODO: add protection
   // CORS
@@ -93,45 +95,73 @@ export const init = async () => {
         "https://lizzygram.netlify.app",
         "https://photo-boom.vercel.app",
       ],
-      methods: "POST,OPTIONS",
+      methods: "POST,GET,OPTIONS",
     })
   );
+
+  // RATE LIMIT
+  const apiLimiter = rateLimit({
+    windowMs: 1000 * 60 * 5, // 5 minutes
+    max: 50,
+    //message: "[ERROR 123567]",
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  });
 
   // LOG REQUEST
   app.use(requestLogMiddleware(winstonLogger));
 
+  /* app.get("/", (req, res, next) => {
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <script src="/app.js"></script>
+          <link rel="stylesheet" href="/styles.css">
+          <title>My server</title>
+      </head>
+      <body>
+          <h1>My server</h1>
+          <a download="hello.png" href="/download/kMwibQErO6dDH6gf3entRLqFBop21JpdtwHEsOnaYI9TEFID4qtIErE3vV_vs">Download file</a>
+      </body>
+      </html>
+    `);
+  }); */
+
   // Photos MIDDLEWAREs
   app.post(
-    addPhotoUrl,
-    //apiLimiter,
-    multerMiddleware(upload),
+    `/${addPhotoUrl}`,
+    apiLimiter,
+    multerMiddleware(upload, winstonLogger),
     //upload.single("file"),
     addPhotoMiddleware(winstonLogger)
   );
 
   app.post(
-    editPhotoUrl,
-    //apiLimiter,
+    `/${editPhotoUrl}`,
+    apiLimiter,
     //upload.single("file"),
-    multerMiddleware(upload),
+    multerMiddleware(upload, winstonLogger),
     editPhotoMiddleware(winstonLogger)
   );
 
   app.get(
     downloadPhotoUrl,
-    //apiLimiter,
+    apiLimiter,
     //upload.single("file"),
     //multerMiddleware(upload),
     downloadPhotoMiddleware(winstonLogger)
   );
 
-  app.post(
+  /* app.post(
     "/photo-performance",
     //apiLimiter,
     //upload.single("file"),
     multerMiddleware(upload),
     performanceMiddleware(winstonLogger)
-  );
+  ); */
 
   //TODO: add download original photo middleware
   // how to protect:

@@ -1,5 +1,3 @@
-// IT MIDDLEWARE ONLY FOR TEST PERFORMANCE
-
 import { NextFunction, Request, Response } from "express";
 import {
   compose,
@@ -13,44 +11,34 @@ import {
   tap,
   elif,
   Next,
-  thenDoneFlat,
+  thenDoneFold,
 } from "fmagic";
+import { AddPhotoData } from "../../../types";
 import {
-  Path,
-  Width,
-  PhotoInfo,
-  WebImageInfo,
-  TransformedImageInfo,
-  AddPhotoData,
-  WebImagesInfo,
-  PhotoFieldsToUpdateOnAdd,
-} from "../../../types";
-/* import * as validator from "../service/Validator";
-import * as photoDb from "../service/PhotosDb";
-import * as fs from "../service/Fs";
-import { save as saveToGoogleDrive } from "../service/OriginalPhotoStore";
-//import { getPhotoInfo, makePaths, makeOptimizedByWidthPhotoFiles, makeBase64String } from "../service/PhotoTransformations";
-import * as photoTransformations from "../service/PhotoTransformations";
-import * as photosWebStore from "../service/PhotosWebStore";
-import { photoSizes } from "../../config";
-import {
-  makePhotoFieldsToUpdateOnAdd,
-  makeBeautyErrorMsg,
-} from "./addPhoto.helper"; */
-import {
-  checkFirestoreRecordOnAdd,
-  makeOptimizedPhotosAndBase64String,
-  makePhotoInfoAndPathsToOptimizedPhotos,
-  uploadPhotosToPhotosWebStorage,
-  makePhotoDataAndSendToDbOnAdd,
-  savePhotoToOriginalPhotoStorage,
-  onSuccessResponseOnAdd,
-  onErrorResponse,
-} from "./../../controller";
+  CheckFirestoreRecordOnAdd,
+  MakeOptimizedPhotosAndBase64String,
+  MakePhotoInfoAndPathsToOptimizedPhotos,
+  UploadPhotosToPhotosWebStorage,
+  MakePhotoDataAndSendToDbOnAdd,
+  SavePhotoToOriginalPhotoStorage,
+  OnSuccessResponseOnAdd,
+  OnErrorResponse,
+} from "./../../controller/types";
 import { Logger } from "winston";
 
-export const performanceMiddleware =
-  (logger: Logger) => async (req: Request, res: Response, next: NextFunction) =>
+export const addPhotoMiddleware =
+  (
+    checkFirestoreRecordOnAdd: CheckFirestoreRecordOnAdd,
+    makePhotoInfoAndPathsToOptimizedPhotos: MakeOptimizedPhotosAndBase64String,
+    makeOptimizedPhotosAndBase64String: MakePhotoInfoAndPathsToOptimizedPhotos,
+    uploadPhotosToPhotosWebStorage: UploadPhotosToPhotosWebStorage,
+    makePhotoDataAndSendToDbOnAdd: MakePhotoDataAndSendToDbOnAdd,
+    savePhotoToOriginalPhotoStorage: SavePhotoToOriginalPhotoStorage,
+    onErrorResponse: OnErrorResponse,
+    onSuccessResponseOnAdd: OnSuccessResponseOnAdd
+  ) =>
+  (logger: Logger) =>
+  async (req: Request, res: Response, next: NextFunction) =>
     compose<unknown, AddPhotoData>(
       // Get request params
       () =>
@@ -77,8 +65,10 @@ export const performanceMiddleware =
           })
         )
       ),
+      // Check firestore record with that photoId
+      chain(checkFirestoreRecordOnAdd),
       // make photo metricks info and paths to optimized photos
-      chain(makePhotoInfoAndPathsToOptimizedPhotos),
+      then(chain(makePhotoInfoAndPathsToOptimizedPhotos)),
       then(
         map(
           tap((data: any) =>
@@ -110,11 +100,31 @@ export const performanceMiddleware =
           )
         )
       ),
-      // clean up and send error or success response
-      thenDoneFlat(
-        fold(
-          onErrorResponse(res, logger, false),
-          onSuccessResponseOnAdd(res, logger)
+      // make photo data and add it in to firestore
+      then(chain(makePhotoDataAndSendToDbOnAdd)),
+      then(
+        map(
+          tap((data: any) =>
+            logger.log("info", "STAGE 4", {
+              DATA: data,
+            })
+          )
         )
+      ),
+      // save original photo to google drive and update googleDriveId field on firestore
+      then(map(tap(savePhotoToOriginalPhotoStorage(logger)))),
+      then(
+        map(
+          tap((data: any) =>
+            logger.log("info", "STAGE 5", {
+              DATA: data,
+            })
+          )
+        )
+      ),
+      // clean up and send error or success response
+      thenDoneFold(
+        onErrorResponse(res, logger, false),
+        onSuccessResponseOnAdd(res, logger)
       )
     )();

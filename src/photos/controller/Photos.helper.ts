@@ -3,48 +3,12 @@ import { photoSizes } from "../../config";
 import {
   AddPhotoData,
   EditPhotoData,
-  WebImagesInfo,
   WebSecureUrl,
   Width,
   PhotoFieldsToUpdateOnAdd,
   PhotoFieldsToUpdateOnEdit,
-  PhotoMiddlewareDone,
 } from "../../types";
 import { getYearsOld } from "../../utils/app";
-
-export const makeBeautyErrorMsg = (
-  val: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>,
-  isEdit: boolean = false
-) => {
-  return `
-
-  ------------- ${isEdit === true ? "EDIT" : "ADD"} PHOTO ERROR ------------
-  
-  PHOTO ID - ${
-    val.data !== undefined && val.data.reqInfo !== undefined
-      ? val.data.reqInfo.photoId
-      : "NO PHOTO ID"
-  }
-  USER UID - ${
-    val.data !== undefined && val.data.reqInfo !== undefined
-      ? val.data.reqInfo.userUid
-      : "NO USER UID"
-  }
-
-  DATE - ${new Date().toUTCString()}
-
-  ====
-
-  DATA - ${JSON.stringify(val.data)}
-
-  ====
-
-  ERROR - ${val.error}
-  
-  --------------------------------------------------------------------------
-  
-  `;
-};
 
 export const getSrcSet = (webUrls: Map<Width, WebSecureUrl>) => {
   let result = "";

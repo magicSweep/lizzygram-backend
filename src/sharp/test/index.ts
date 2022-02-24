@@ -2,7 +2,7 @@ import { writeFile } from "fs";
 import { resolve } from "path";
 import { promisify } from "util";
 import { Path } from "../../types";
-import * as performance from "../../utils/performance";
+import * as performance from "../../service/performance";
 import {
   jpeg,
   getPhotoInfo,
@@ -12,6 +12,7 @@ import {
   resizeOne,
 } from "..";
 import { makePaths_ } from "../../photos/service/PhotoTransformations";
+import { winstonLogger } from "../../logger";
 
 export const photoSizes = [
   { width: 320, height: 180 },
@@ -76,7 +77,7 @@ const main = async (pathToPhoto: string) => {
   ); */
 };
 
-performance.init();
+performance.init(winstonLogger);
 
 main(pathToPhoto);
 

@@ -52,12 +52,16 @@ export const init = () => {
   }
 };
 
+// Add document with random id
 export const addOne =
   (collectionName: string) =>
-  async <T>(docData: T) => {
+  async <T>(docData: T, id?: string) => {
     const db = getFirestore();
 
-    const docRef = db.collection(collectionName).doc();
+    let docRef;
+
+    if (id === undefined) docRef = db.collection(collectionName).doc();
+    else docRef = db.collection(collectionName).doc(id);
 
     /* const res: firestore.WriteResult = */
     await docRef.set(docData);

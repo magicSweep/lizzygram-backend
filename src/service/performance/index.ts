@@ -1,10 +1,11 @@
 import { PerformanceObserver, performance } from "perf_hooks";
 import { debuglog } from "util";
+import { Logger } from "winston";
 
 /* OBSERVER SETUP */
 let observer: PerformanceObserver;
 
-export const init = () => {
+export const init = (logger: Logger) => {
   observer = new PerformanceObserver((items) => {
     /* RESULT LOG */
     //const [measure] = items.getEntriesByName("My special benchmark");
@@ -13,9 +14,9 @@ export const init = () => {
     const measurements = items.getEntriesByType("measure");
 
     measurements.forEach((measurement) => {
-      console.log(`--------------${measurement.name}--------------`);
-      console.log(measurement);
-      console.log("----------------------------");
+      logger.log("info", `MEASUREMENT LOG`, {
+        measurement,
+      });
     });
 
     performance.clearMarks();

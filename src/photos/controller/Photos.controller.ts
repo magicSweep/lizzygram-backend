@@ -1,18 +1,5 @@
-import { NextFunction, Request, Response } from "express";
-import {
-  compose,
-  NI_Next,
-  Done,
-  chain,
-  then,
-  _catch,
-  fold,
-  map,
-  tap,
-  elif,
-  Next,
-  thenDoneFlat,
-} from "fmagic";
+import { Response } from "express";
+import { compose, NI_Next, Done, then, _catch, tap, elif, Next } from "fmagic";
 import {
   Path,
   Width,
@@ -23,7 +10,6 @@ import {
   EditPhotoData,
   WebImagesInfo,
   PhotoFieldsToUpdateOnAdd,
-  PhotoMiddlewareDone,
   FsService,
   OriginalPhotoStoreService,
   PhotosDbService,
@@ -34,30 +20,9 @@ import {
 } from "../../types";
 import { Photo, FirestoreDate } from "lizzygram-common-data/dist/types";
 import {
-  isValidPhotoDbRecordOnAdd,
-  isValidPhotoDbRecordOnEdit,
-} from "../service/Validator";
-import { getPhoto, updatePhoto } from "../service/PhotosDb";
-import { removePhoto, removePhotos } from "../service/Fs";
-import { save, update, isExists } from "../service/OriginalPhotoStore";
-//import { getPhotoInfo, makePaths, makeOptimizedByWidthPhotoFiles, makeBase64String } from "../service/PhotoTransformations";
-import {
-  getPhotoInfo,
-  makePaths,
-  makeBase64String,
-  makeOptimizedByWidthPhotoFiles,
-} from "../service/PhotoTransformations";
-import {
-  makeWebImagesInfo,
-  uploadPhotos,
-  removePhotos as removePhotosFromWebStore,
-} from "../service/PhotosWebStore";
-import {
-  makePhotoFieldsToUpdateOnAdd,
-  makeBeautyErrorMsg,
-  makePhotoFieldsToUpdateOnEdit,
+  makePhotoFieldsToUpdateOnAdd as makePhotoFieldsToUpdateOnAdd_,
+  makePhotoFieldsToUpdateOnEdit as makePhotoFieldsToUpdateOnEdit_,
 } from "./Photos.helper";
-import { photoSizes } from "../../config";
 import { Logger } from "winston";
 
 export const checkFirestoreRecordOnAdd_ =
@@ -77,16 +42,11 @@ export const checkFirestoreRecordOnAdd_ =
       ),
       then((valid: boolean | string) =>
         typeof valid === "string"
-          ? Done.of({ data, error: valid })
+          ? Done.of({ ...data, error: valid })
           : NI_Next.of(data)
       ),
-      _catch((err: any) => Done.of({ data, error: err }))
+      _catch((err: any) => Done.of({ ...data, error: err }))
     )();
-
-export const checkFirestoreRecordOnAdd = checkFirestoreRecordOnAdd_(
-  getPhoto,
-  isValidPhotoDbRecordOnAdd
-);
 
 ////////////////////////////////////////////////
 
@@ -116,21 +76,15 @@ export const checkFirestoreRecordOnEditAndCollectWebIds_ =
           valid: boolean | string;
         }) =>
           typeof valid === "string"
-            ? Done.of({ data, error: valid })
+            ? Done.of({ ...data, error: valid })
             : NI_Next.of({
                 ...data,
                 prevWebImagesIds: photo.files,
                 prevGoogleDriveId: photo.googleDriveId,
               })
       ),
-      _catch((err: any) => Done.of({ data, error: err }))
+      _catch((err: any) => Done.of({ ...data, error: err }))
     )();
-
-export const checkFirestoreRecordOnEditAndCollectWebIds =
-  checkFirestoreRecordOnEditAndCollectWebIds_(
-    getPhoto,
-    isValidPhotoDbRecordOnEdit
-  );
 
 ///////////////////////////////////////////
 
@@ -149,13 +103,10 @@ export const makePhotoInfoAndPathsToOptimizedPhotos_ =
       //then(tap((data: any) => console.log("TAAAAAPP", data))),
       then(NI_Next.of),
       _catch((err: any) => {
-        console.log("---------EEERRRRORORRR", err);
-        return Done.of({ data, error: err });
+        //console.log("---------EEERRRRORORRR", err);
+        return Done.of({ ...data, error: err });
       })
     )();
-
-export const makePhotoInfoAndPathsToOptimizedPhotos =
-  makePhotoInfoAndPathsToOptimizedPhotos_(getPhotoInfo, makePaths);
 
 //////////////////////////////////////////////
 
@@ -196,15 +147,8 @@ export const makeOptimizedPhotosAndBase64String_ =
             base64String,
           })
       ),
-      _catch((error: any) => Done.of({ data, error }))
+      _catch((error: any) => Done.of({ ...data, error }))
     )();
-
-export const makeOptimizedPhotosAndBase64String =
-  makeOptimizedPhotosAndBase64String_(
-    makeOptimizedByWidthPhotoFiles,
-    makeBase64String,
-    photoSizes
-  );
 
 ////////////////////////////////////////////
 
@@ -225,24 +169,56 @@ export const uploadPhotosToPhotosWebStorage_ =
           data.optimizedPhotosPaths as Map<Width, Path>
         )
       ),
-      then((webImagesInfo: WebImageInfo[]) =>
+      then((webImagesInfo: WebImagesInfo) =>
         NI_Next.of({
           ...data,
           webImagesInfo,
         })
       ),
-      _catch((error: any) => Done.of({ data, error }))
+      _catch((error: any) => Done.of({ ...data, error }))
     )();
-
-export const uploadPhotosToPhotosWebStorage = uploadPhotosToPhotosWebStorage_(
-  uploadPhotos,
-  makeWebImagesInfo
-);
 
 //////////////////////////////////////
 
+/* const tryCatch = (try_: any, catch_: any) => (val: any) => {
+  try {
+    return try_(val);
+  } catch (err) {
+    return catch_(err);
+  }
+};
+
 export const makePhotoDataAndSendToDbOnAdd_ =
-  (updatePhoto: PhotosDbService["updatePhoto"]) => (data: AddPhotoData) =>
+  (
+    makePhotoFieldsToUpdateOnAdd: typeof makePhotoFieldsToUpdateOnEdit_,
+    updatePhoto: PhotosDbService["updatePhoto"]
+  ) =>
+  (data: AddPhotoData) =>
+    compose<AddPhotoData, Promise<NI_Next<AddPhotoData> | Done>>(
+      tryCatch(
+        () => NI_Next.of(makePhotoFieldsToUpdateOnAdd(data)),
+        (err: any) =>
+          Done.of({
+            ...data,
+            error: err,
+          })
+      ),
+
+      chain((fieldsToUpdate: PhotoFieldsToUpdateOnAdd) =>
+        updatePhoto(data.reqInfo.photoId, fieldsToUpdate)
+      ),
+
+      then(() => NI_Next.of(data)),
+
+      _catch((error: any) => Done.of({ ...data, error }))
+    )(); */
+
+export const makePhotoDataAndSendToDbOnAdd_ =
+  (
+    makePhotoFieldsToUpdateOnAdd: typeof makePhotoFieldsToUpdateOnAdd_,
+    updatePhoto: PhotosDbService["updatePhoto"]
+  ) =>
+  (data: AddPhotoData) =>
     compose<AddPhotoData, Promise<NI_Next<AddPhotoData> | Done>>(
       () => makePhotoFieldsToUpdateOnAdd(data),
 
@@ -251,16 +227,17 @@ export const makePhotoDataAndSendToDbOnAdd_ =
 
       then(() => NI_Next.of(data)),
 
-      _catch((error: any) => Done.of({ data, error }))
+      _catch((error: any) => Done.of({ ...data, error }))
     )();
-
-export const makePhotoDataAndSendToDbOnAdd =
-  makePhotoDataAndSendToDbOnAdd_(updatePhoto);
 
 ////////////////////////////////////////
 
 export const makePhotoDataAndSendToDbOnEdit_ =
-  (updatePhoto: PhotosDbService["updatePhoto"]) => (data: EditPhotoData) =>
+  (
+    makePhotoFieldsToUpdateOnEdit: typeof makePhotoFieldsToUpdateOnEdit_,
+    updatePhoto: PhotosDbService["updatePhoto"]
+  ) =>
+  (data: EditPhotoData) =>
     compose<EditPhotoData, Promise<NI_Next<EditPhotoData> | Done>>(
       () => makePhotoFieldsToUpdateOnEdit(data),
 
@@ -269,11 +246,8 @@ export const makePhotoDataAndSendToDbOnEdit_ =
 
       then(() => NI_Next.of(data)),
 
-      _catch((error: any) => Done.of({ data, error }))
+      _catch((error: any) => Done.of({ ...data, error }))
     )();
-
-export const makePhotoDataAndSendToDbOnEdit =
-  makePhotoDataAndSendToDbOnEdit_(updatePhoto);
 
 ///////////////////////////////////////////////
 
@@ -283,6 +257,7 @@ export const savePhotoToOriginalPhotoStorage_ =
     updatePhoto: PhotosDbService["updatePhoto"],
     removePhoto: FsService["removePhoto"]
   ) =>
+  (logger: Logger) =>
   async (data: AddPhotoData) => {
     compose<AddPhotoData, Promise<NI_Next<AddPhotoData>>>(
       () =>
@@ -300,18 +275,13 @@ export const savePhotoToOriginalPhotoStorage_ =
       then(() => removePhoto(data.reqInfo.photoFile.path)),
 
       _catch((err: any) => {
-        console.error(
-          `Error on save photo to google drive ${err.message} | ${data.reqInfo.photoFile.filename} | ${data.reqInfo.photoFile.originalname} |`
-        );
+        logger.log("error", "Error on save photo to google drive", {
+          error: err,
+          photoFile: data.reqInfo.photoFile,
+        });
       })
     )();
   };
-
-export const savePhotoToOriginalPhotoStorage = savePhotoToOriginalPhotoStorage_(
-  save,
-  updatePhoto,
-  removePhoto
-);
 
 /////////////////////////////////////////
 
@@ -320,8 +290,10 @@ export const updatePhotoOnOriginalPhotoStorage_ =
     updateOnGoogleDrive: OriginalPhotoStoreService["update"],
     saveToGoogleDrive: OriginalPhotoStoreService["save"],
     updatePhoto: PhotosDbService["updatePhoto"],
-    removePhoto: FsService["removePhoto"]
+    removePhoto: FsService["removePhoto"],
+    isExists: (photoId: string) => Promise<boolean>
   ) =>
+  (logger: Logger) =>
   async (data: EditPhotoData) => {
     compose<EditPhotoData, Promise<NI_Next<EditPhotoData>>>(
       () => isExists(data.prevGoogleDriveId as string),
@@ -330,7 +302,7 @@ export const updatePhotoOnOriginalPhotoStorage_ =
           (isExists: boolean | undefined) => isExists === true,
           () =>
             updateOnGoogleDrive(
-              data.reqInfo.photoFile.filename,
+              data.prevGoogleDriveId as string,
               data.reqInfo.photoFile.path
             ),
           () =>
@@ -350,22 +322,20 @@ export const updatePhotoOnOriginalPhotoStorage_ =
       then(() => removePhoto(data.reqInfo.photoFile.path)),
 
       _catch((err: any) => {
-        console.error(
-          `Error on save photo to google drive ${err.message} | ${data.reqInfo.photoFile.filename} | ${data.reqInfo.photoFile.originalname} |`
-        );
+        logger.log("error", "Error on update photo on google drive", {
+          error: err,
+          photoFile: data.reqInfo.photoFile,
+        });
       })
     )();
   };
-
-export const updatePhotoOnOriginalPhotoStorage =
-  updatePhotoOnOriginalPhotoStorage_(update, save, updatePhoto, removePhoto);
 
 ////////////////////////////////////////
 
 export const onErrorResponse_ =
   (
     /*  makeBeautyErrorMsg: (
-      data: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>,
+      data: AddPhotoData | EditPhotoData,
       isEdit?: boolean
     ) => string, */
     removePhoto: FsService["removePhoto"],
@@ -373,8 +343,8 @@ export const onErrorResponse_ =
     removePhotosFromWebStore: PhotosWebStoreService["removePhotos"]
   ) =>
   (response: Response, logger: Logger, isEdit: boolean) =>
-    compose<PhotoMiddlewareDone<AddPhotoData | EditPhotoData>, void>(
-      tap((val: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) =>
+    compose<AddPhotoData | EditPhotoData, void>(
+      tap((val: AddPhotoData | EditPhotoData) =>
         //console.log(makeBeautyErrorMsg(val, isEdit))
 
         //${isEdit === true ? "EDIT" : "ADD"} PHOTO ERROR
@@ -383,50 +353,38 @@ export const onErrorResponse_ =
         })
       ),
       // remove upload file
-      elif<
-        PhotoMiddlewareDone<AddPhotoData | EditPhotoData>,
-        PhotoMiddlewareDone<AddPhotoData | EditPhotoData>
-      >(
-        // @ts-ignore
-        ({ data }: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) =>
-          data.reqInfo !== undefined && data.reqInfo.photoFile !== undefined,
-        tap(({ data }: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) =>
-          removePhoto(data.reqInfo.photoFile.path)
+      elif<any, any>(
+        ({ reqInfo }: AddPhotoData | EditPhotoData) =>
+          reqInfo !== undefined && reqInfo.photoFile !== undefined,
+        tap(({ reqInfo }: AddPhotoData | EditPhotoData) =>
+          removePhoto(reqInfo.photoFile.path)
         ),
-        (val: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) => val
+        (val: AddPhotoData | EditPhotoData) => val
       ),
       // remove temp optimized photos
-      elif<
-        PhotoMiddlewareDone<AddPhotoData | EditPhotoData>,
-        PhotoMiddlewareDone<AddPhotoData | EditPhotoData>
-      >(
-        // @ts-ignore
-        ({ data }: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) =>
-          data.optimizedPhotosPaths !== undefined,
-        tap(({ data }: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) =>
+      elif<any, any>(
+        ({ optimizedPhotosPaths }: AddPhotoData | EditPhotoData) =>
+          optimizedPhotosPaths !== undefined,
+        tap(({ optimizedPhotosPaths }: AddPhotoData | EditPhotoData) =>
           removePhotos([
-            ...(data.optimizedPhotosPaths as Map<number, string>).values(),
+            ...(optimizedPhotosPaths as Map<number, string>).values(),
           ])
         ),
-        (val: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) => val
+        (val: AddPhotoData | EditPhotoData) => val
       ),
       // remove cloudinary images
-      elif<
-        PhotoMiddlewareDone<AddPhotoData | EditPhotoData>,
-        PhotoMiddlewareDone<AddPhotoData | EditPhotoData>
-      >(
-        // @ts-ignore
-        ({ data }: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) =>
-          data.webImagesInfo !== undefined,
-        tap(({ data }: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) =>
-          removePhotosFromWebStore(data.webImagesInfo?.ids as string[])
+      elif<any, any>(
+        ({ webImagesInfo }: AddPhotoData | EditPhotoData) =>
+          webImagesInfo !== undefined,
+        tap(({ webImagesInfo }: AddPhotoData | EditPhotoData) =>
+          removePhotosFromWebStore(webImagesInfo?.ids as string[])
         ),
-        (val: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) => val
+        (val: AddPhotoData | EditPhotoData) => val
       ),
       // Do we need to delete prevPhotosWebStore ? Last error can be triggered on
       // update firestore record - it means
       // Do we need to delete file from google drive ?
-      (val: PhotoMiddlewareDone<AddPhotoData | EditPhotoData>) => {
+      (val: AddPhotoData | EditPhotoData) => {
         // return response json
         return response
           .status(200)
@@ -437,13 +395,6 @@ export const onErrorResponse_ =
           .end();
       }
     );
-
-export const onErrorResponse = onErrorResponse_(
-  //makeBeautyErrorMsg,
-  removePhoto,
-  removePhotos,
-  removePhotosFromWebStore
-);
 
 ///////////////////////////////////////////
 
@@ -462,10 +413,6 @@ export const onSuccessResponseOnAdd_ =
       DATA: data,
     });
 
-    /*  console.log(`---------SUCCESS ADD PHOTO-----------`);
-    console.log(data);
-    console.log("---------------------------"); */
-
     return response
       .status(200)
       .json({
@@ -474,8 +421,6 @@ export const onSuccessResponseOnAdd_ =
       })
       .end();
   };
-
-export const onSuccessResponseOnAdd = onSuccessResponseOnAdd_(removePhotos);
 
 ////////////////////////////
 
@@ -500,10 +445,6 @@ export const onSuccessResponseOnEdit_ =
       DATA: data,
     });
 
-    /*  console.log(`---------SUCCESS EDIT PHOTO-----------`);
-    console.log(data);
-    console.log("---------------------------"); */
-
     return response
       .status(200)
       .json({
@@ -512,8 +453,3 @@ export const onSuccessResponseOnEdit_ =
       })
       .end();
   };
-
-export const onSuccessResponseOnEdit = onSuccessResponseOnEdit_(
-  removePhotos,
-  removePhotosFromWebStore
-);

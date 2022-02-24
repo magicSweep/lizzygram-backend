@@ -48,7 +48,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.updateOne = exports.deleteOne = exports.getOne = exports.getAll = exports.addMany = exports.addOne = exports.init = void 0;
+exports.updateOne = exports.deleteOne = exports.getOne = exports.exists = exports.getAll = exports.addMany = exports.addOne = exports.init = void 0;
 // JEST DO NOT WORK WITH THAT KINDA IMPORTS
 var app_1 = require("firebase-admin/app");
 //import { credential } from "firebase-admin/lib";
@@ -85,14 +85,18 @@ var init = function () {
     }
 };
 exports.init = init;
+// Add document with random id
 var addOne = function (collectionName) {
-    return function (docData) { return __awaiter(void 0, void 0, void 0, function () {
+    return function (docData, id) { return __awaiter(void 0, void 0, void 0, function () {
         var db, docRef;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     db = (0, firestore_1.getFirestore)();
-                    docRef = db.collection(collectionName).doc();
+                    if (id === undefined)
+                        docRef = db.collection(collectionName).doc();
+                    else
+                        docRef = db.collection(collectionName).doc(id);
                     /* const res: firestore.WriteResult = */
                     return [4 /*yield*/, docRef.set(docData)];
                 case 1:
@@ -143,6 +147,23 @@ var getAll = function (collectionName) { return function () { return __awaiter(v
 }); }; };
 exports.getAll = getAll;
 //export const getAll = getAll_(photosCollectionName);
+var exists = function (collectionName) {
+    return function (docId) { return __awaiter(void 0, void 0, void 0, function () {
+        var db, docRef, doc;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    db = (0, firestore_1.getFirestore)();
+                    docRef = db.collection(collectionName).doc(docId);
+                    return [4 /*yield*/, docRef.get()];
+                case 1:
+                    doc = _a.sent();
+                    return [2 /*return*/, doc.exists];
+            }
+        });
+    }); };
+};
+exports.exists = exists;
 var getOne = function (collectionName) {
     return function (docId) { return __awaiter(void 0, void 0, void 0, function () {
         var db, docRef, doc;

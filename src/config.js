@@ -1,9 +1,10 @@
 "use strict";
 exports.__esModule = true;
-exports.birthDate = exports.descMaxLength = exports.descRegex = exports.photoSizes = exports.downloadPhotoUrl = exports.editPhotoUrl = exports.addPhotoUrl = exports.selfDomainNameLocal = exports.selfDomainNameHeroku = exports.pathToUploadFilesDir = exports.pathToOptimizedPhotosDir = exports.photosCollectionName = void 0;
+exports.birthDate = exports.descMaxLength = exports.descRegex = exports.photoSizes = exports.downloadPhotoUrl = exports.editPhotoUrl = exports.addPhotoUrl = exports.pathToUploadFilesDir = exports.pathToOptimizedPhotosDir = exports.usersCollectionName = exports.photosCollectionName = void 0;
 var path_1 = require("path");
 // photos
 exports.photosCollectionName = "photos";
+exports.usersCollectionName = "users";
 /// export const PHOTOS_FIRESTORE_COLLECTION_NAME =
 //  process.env.NODE_ENV === "test" ? "phototest" : "photos";
 //export const PHOTOS_FIRESTORE_COLLECTION_NAME = "photos";
@@ -11,16 +12,15 @@ exports.photosCollectionName = "photos";
 exports.pathToOptimizedPhotosDir = (0, path_1.join)(process.cwd(), "temp");
 exports.pathToUploadFilesDir = (0, path_1.join)(process.cwd(), "upload");
 // EXPRESS PATHS
-exports.selfDomainNameHeroku = "lizzygram.herokuapp.com";
+//export const selfDomainNameHeroku = "lizzygram.herokuapp.com";
 //export const selfDomainNameLocal = "localhost";
-exports.selfDomainNameLocal = "localhost";
 //export const port = 80;
-exports.addPhotoUrl = "/add-photo";
-exports.editPhotoUrl = "/edit-photo";
+exports.addPhotoUrl = "add-photo";
+exports.editPhotoUrl = "edit-photo";
 // Dyno do not sleep
 //export const herokuPingUrl = "/sleep_q23we4rt5";
 // Download original photo from google drive
-exports.downloadPhotoUrl = "/download/:photoId";
+exports.downloadPhotoUrl = "/download/:photoQuery";
 //export const photoWidths = [400, 800, 1200, 1600, 1900];
 //export const photoHeights = [300, 600, 700, 900, 1000];
 exports.photoSizes = [

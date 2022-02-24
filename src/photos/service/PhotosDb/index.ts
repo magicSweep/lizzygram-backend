@@ -3,11 +3,14 @@
   updateOne,
   deleteOne,
 } from "../../../firestore/firestore.fake"; */
-import { getOne, updateOne, deleteOne } from "../../../firestore";
+import { getOne, updateOne, deleteOne, addOne } from "../../../firestore";
 //import { Photo, FirestoreDate, PhotoFieldsToUpdateOnAdd } from "../../../types";
 import { Photo, FirestoreDate } from "lizzygram-common-data/dist/types";
 
 import { photosCollectionName } from "../../../config";
+
+export const addPhoto: (photo: Photo<any>, id?: string) => Promise<boolean> =
+  addOne(photosCollectionName);
 
 export const getPhoto: (
   photoId: string

@@ -146,11 +146,11 @@ interface MulterRequest extends Express.Request {
 } */
 
 // MIDDLEWARES
-
+/* 
 export type PhotoMiddlewareDone<T> = {
   data: T;
   error: any;
-};
+}; */
 
 /* export type PhotoMiddlewareData = {
   type: "ADD" | "EDIT";

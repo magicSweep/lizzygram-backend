@@ -10,52 +10,33 @@ import {
   _catch,
 } from "fmagic";
 import wait from "waait";
-import { addPhotoMiddleware } from ".";
-import { isValidPhotoDbRecordOnAdd } from "../../service/Validator";
-import { getPhoto, updatePhoto } from "../../service/PhotosDb";
-import { removePhoto, removePhotos } from "../../service/Fs";
-import { save as saveToGoogleDrive } from "../../service/OriginalPhotoStore";
-//import { getPhotoInfo, makePaths, makeOptimizedByWidthPhotoFiles, makeBase64String } from "../service/PhotoTransformations";
-import {
-  getPhotoInfo,
-  makePaths,
-  makeBase64String,
-  makeOptimizedByWidthPhotoFiles,
-} from "../../service/PhotoTransformations";
-import {
-  makeWebImagesInfo,
-  uploadPhotos,
-  removePhotos as removePhotosFromWebStore,
-} from "../../service/PhotosWebStore";
-import { photoSizes } from "../../../config";
+import { addPhotoMiddleware as addPhotoMiddleware_ } from "./addPhoto";
 
-/* jest.mock("../../service/PhotosWebStore", () => ({
-  __esModule: true,
-  removePhotos: jest.fn(),
-  uploadPhotos: jest.fn().mockResolvedValue("photoImagesInfo[]"),
-  makeWebImagesInfo: jest.fn().mockResolvedValue({
-    ids: ["id-1", "id-2"],
-    urls: new Map([
-      [800, "https://v.ru/800"],
-      [1280, "https://v.ru/1280"],
-    ]),
-  }),
-})); */
+const checkFirestoreRecordOnAdd = jest.fn(() =>
+  Promise.resolve(NI_Next.of("AddPhotoData_1"))
+);
+const makeOptimizedPhotosAndBase64String = jest.fn(() =>
+  Promise.resolve(NI_Next.of("AddPhotoData_2"))
+);
+const makePhotoInfoAndPathsToOptimizedPhotos = jest.fn(() =>
+  Promise.resolve(NI_Next.of("AddPhotoData_3"))
+);
+const uploadPhotosToPhotosWebStorage = jest.fn(() =>
+  Promise.resolve(NI_Next.of("AddPhotoData_4"))
+);
+const makePhotoDataAndSendToDbOnAdd = jest.fn(() =>
+  Promise.resolve(NI_Next.of("AddPhotoData_5"))
+);
+const savePhotoToOriginalPhotoStorage = jest.fn(() => Promise.resolve());
+const savePhotoToOriginalPhotoStorage_ = jest.fn(
+  () => savePhotoToOriginalPhotoStorage
+);
 
-jest.mock("../../service/OriginalPhotoStore");
-jest.mock("../../service/Validator");
-jest.mock("../../service/PhotosDb");
-jest.mock("../../service/Fs");
-jest.mock("../../service/PhotoTransformations");
-jest.mock("../../service/PhotosWebStore");
+const onSuccessResponseOnAdd = jest.fn(() => () => {});
+const onSuccessResponseOnAdd_ = jest.fn(() => onSuccessResponseOnAdd);
 
-jest.mock("../../../config", () => ({
-  __esModule: true,
-  photoSizes: [
-    { width: 800, height: 640 },
-    { width: 1280, height: 720 },
-  ],
-}));
+const onErrorResponse = jest.fn(() => () => {});
+const onErrorResponse_ = jest.fn(() => onErrorResponse);
 
 let req = {
   file: "file",
@@ -65,33 +46,37 @@ let req = {
   },
 };
 
-const res = {
-  status: () => {
-    return {
-      json: (data: any) => ({
-        end: () => data,
-      }),
-    };
-  },
-};
-
-(getPhoto as jest.Mock).mockResolvedValue({
-  id: "photo_id",
-  src: "src",
-  isActive: false,
-  addedByUserUID: "userUID",
-  files: ["file1", "file2"],
-  googleDriveId: "googleDriveId",
-});
-
 const logger = {
   log: jest.fn(),
 };
+
+/* const json = jest.fn(() => ({
+  end: () => {},
+}));
+
+const res = {
+  status: () => ({
+    json,
+  }),
+}; */
+
+const res = {};
 
 describe("addPhotoMiddleware", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
+
+  const addPhotoMiddleware = addPhotoMiddleware_(
+    checkFirestoreRecordOnAdd,
+    makePhotoInfoAndPathsToOptimizedPhotos,
+    makeOptimizedPhotosAndBase64String,
+    uploadPhotosToPhotosWebStorage,
+    makePhotoDataAndSendToDbOnAdd,
+    savePhotoToOriginalPhotoStorage_,
+    onErrorResponse_,
+    onSuccessResponseOnAdd_
+  );
 
   test("If we do not have photo file we do nothing", async () => {
     let anotherReq = {
@@ -99,108 +84,41 @@ describe("addPhotoMiddleware", () => {
       body: undefined,
     };
 
-    let result: any = await addPhotoMiddleware(logger as any)(
+    await addPhotoMiddleware(logger as any)(
       anotherReq as any,
       res as any,
       {} as any
     );
 
-    expect(makeBase64String).toHaveBeenCalledTimes(0);
+    expect(checkFirestoreRecordOnAdd).toHaveBeenCalledTimes(0);
 
-    expect(removePhoto).toHaveBeenCalledTimes(0);
+    //expect(logger.log).toHaveBeenCalledTimes(0);
 
-    expect(result).toEqual({ data: {}, status: "error" });
-  });
+    expect(makePhotoInfoAndPathsToOptimizedPhotos).toHaveBeenCalledTimes(0);
+    expect(makeOptimizedPhotosAndBase64String).toHaveBeenCalledTimes(0);
+    expect(uploadPhotosToPhotosWebStorage).toHaveBeenCalledTimes(0);
+    expect(makePhotoDataAndSendToDbOnAdd).toHaveBeenCalledTimes(0);
+    expect(savePhotoToOriginalPhotoStorage).toHaveBeenCalledTimes(0);
 
-  test("Firestore record not valid or some error on firestore - we remove upload photo", async () => {
-    (isValidPhotoDbRecordOnAdd as jest.Mock).mockReturnValueOnce(
-      "No firebase record"
-    );
-
-    let result: any = await addPhotoMiddleware(logger as any)(
-      req as any,
-      res as any,
-      {} as any
-    );
-
-    expect(result).toEqual({ data: {}, status: "error" });
-
-    expect(getPhoto).toHaveBeenCalledTimes(1);
-
-    expect(removePhoto).toHaveBeenCalledTimes(1);
-
-    expect(isValidPhotoDbRecordOnAdd).toHaveBeenCalledTimes(1);
-
-    expect(isValidPhotoDbRecordOnAdd).toHaveBeenNthCalledWith(
-      1,
-      "photoId",
-      {
-        addedByUserUID: "userUID",
-        files: ["file1", "file2"],
-        googleDriveId: "googleDriveId",
-        id: "photo_id",
-        isActive: false,
-        src: "src",
-      },
-      "userUid"
-    );
-
-    (getPhoto as jest.Mock).mockRejectedValueOnce("Some firestore error");
-
-    await addPhotoMiddleware(logger as any)(req as any, res as any, {} as any);
-
-    expect(result).toEqual({ data: {}, status: "error" });
-
-    expect(getPhoto).toHaveBeenCalledTimes(2);
-
-    expect(removePhoto).toHaveBeenCalledTimes(2);
-
-    expect(isValidPhotoDbRecordOnAdd).toHaveBeenCalledTimes(1);
-  });
-
-  test("Error on makePaths - not async operation", async () => {
-    (makePaths as jest.Mock).mockImplementationOnce(() => {
-      throw new Error("Bad fat error");
-    });
-
-    (getPhoto as jest.Mock).mockResolvedValueOnce("photo");
-
-    let result: any = await addPhotoMiddleware(logger as any)(
-      req as any,
-      res as any,
-      {} as any
-    );
-
-    expect(result).toEqual({ data: {}, status: "error" });
+    expect(onSuccessResponseOnAdd).toHaveBeenCalledTimes(0);
+    expect(onErrorResponse).toHaveBeenCalledTimes(1);
   });
 
   test("If all okey", async () => {
-    let result: any = await addPhotoMiddleware(logger as any)(
-      req as any,
-      res as any,
-      {} as any
-    );
+    await addPhotoMiddleware(logger as any)(req as any, res as any, {} as any);
 
-    await wait(100);
+    expect(checkFirestoreRecordOnAdd).toHaveBeenCalledTimes(1);
 
-    expect(getPhoto).toHaveBeenCalledTimes(1);
+    //expect(logger.log).toHaveBeenCalledTimes(0);
 
-    expect(isValidPhotoDbRecordOnAdd).toHaveBeenCalledTimes(1);
+    expect(makePhotoInfoAndPathsToOptimizedPhotos).toHaveBeenCalledTimes(1);
+    expect(makeOptimizedPhotosAndBase64String).toHaveBeenCalledTimes(1);
+    expect(uploadPhotosToPhotosWebStorage).toHaveBeenCalledTimes(1);
+    expect(makePhotoDataAndSendToDbOnAdd).toHaveBeenCalledTimes(1);
+    expect(savePhotoToOriginalPhotoStorage).toHaveBeenCalledTimes(1);
 
-    expect(makeBase64String).toHaveBeenCalledTimes(1);
-    expect(uploadPhotos).toHaveBeenCalledTimes(1);
-    expect(makeWebImagesInfo).toHaveBeenCalledTimes(1);
-
-    //expect(makePhotoFieldsToUpdateOnAdd).toHaveBeenCalledTimes(1);
-
-    expect(updatePhoto).toHaveBeenCalledTimes(2);
-
-    expect(saveToGoogleDrive).toHaveBeenCalledTimes(1);
-
-    expect(removePhoto).toHaveBeenCalledTimes(1);
-    expect(removePhotos).toHaveBeenCalledTimes(1);
-
-    expect(result).toEqual({ data: {}, status: "success" });
+    expect(onSuccessResponseOnAdd).toHaveBeenCalledTimes(1);
+    expect(onErrorResponse).toHaveBeenCalledTimes(0);
   });
 });
 

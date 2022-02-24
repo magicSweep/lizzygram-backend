@@ -13,8 +13,9 @@ import {
   downloadImage,
 } from "./../../../googleDrive/googleDrive.fake"; */
 import { Path } from "../../../types";
+import { Logger } from "winston";
 
-export const init = () => initDrive();
+export const init = (logger: Logger) => initDrive(logger);
 
 export const isExists = (photoId: string) => {
   return isFileExists(photoId);
