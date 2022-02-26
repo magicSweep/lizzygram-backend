@@ -215,15 +215,23 @@ export const testDownloadPhoto = async () => {
     pathToPhoto
   );
 
-  console.assert(existsSync(pathToPhoto) === true, {
+  if (existsSync(pathToPhoto) !== true) {
+    console.error("Photo not downloaded....");
+  }
+
+  /*  console.assert(existsSync(pathToPhoto) === true, {
     errorMsg: "Photo not downloaded....",
-  });
+  }); */
 
   await promisify(unlink)(pathToPhoto);
 
-  console.assert(existsSync(pathToPhoto) === false, {
+  if (existsSync(pathToPhoto) === true) {
+    console.error(`Photo was not deleted.... | ${pathToPhoto}`);
+  }
+
+  /* console.assert(existsSync(pathToPhoto) === false, {
     errorMsg: `Photo was not deleted.... | ${pathToPhoto}`,
-  });
+  }); */
 
   console.log("NO ERROR MSGS - MEANS SUCCESS DOWNLOAD TEST.");
 };
