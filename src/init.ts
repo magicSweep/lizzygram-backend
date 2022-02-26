@@ -41,7 +41,10 @@ import { init as initCloudinary } from "./cloudinary";
 import { winstonLogger } from "./logger";
 import { getBuildFor } from "lizzygram-common-data";
 
+// web: pm2 start ./dist/src/index.js -i 1 --max-memory-restart 490M
 export const init = async () => {
+  console.log("START_INIT");
+
   // MAKE UPLOADS AND TEMP DIRS
   if (!existsSync(pathToUploadFilesDir)) {
     mkdirSync(pathToUploadFilesDir);

@@ -1,1 +1,1 @@
-web: pm2 start ./dist/src/index.js -i 1 --max-memory-restart 490M
+web: node ./dist/src/index.js
