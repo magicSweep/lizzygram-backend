@@ -28,6 +28,7 @@ type DownloadPhotoMiddlewareData = {
   resultDebug: string;
   validation: string | true;
   userExists: boolean;
+  fileName: string;
 };
 
 export const downloadPhotoMiddleware_ =
@@ -42,6 +43,7 @@ export const downloadPhotoMiddleware_ =
       // get photo query from request /12weqw23rew.jpeg
       () => ({
         photoQuery: req.params.photoQuery,
+        fileName: req.params.fileName,
       }),
       /*  (photoQuery: string) => ({
         photoQuery,
@@ -75,6 +77,7 @@ export const downloadPhotoMiddleware_ =
         [() => true, Next.of],
       ]),
 
+      //http://localhost:3009/download/kMwibQErO6dDH6gf3entRLqFBop21mrIb1q3nD3QGWl0kf97vcVdJ0gm5S6qe/photo_85490.jpeg
       // parse photo query | query = userUid(28) + googleDriveId(33)
       map((data: DownloadPhotoMiddlewareData) => ({
         ...data,
@@ -125,10 +128,13 @@ export const downloadPhotoMiddleware_ =
 
           const photoStream = await downloadImageStream(data.googleDriveId);
 
-          //
-          res.type("application/octet-stream");
+          res.setHeader(
+            "Content-disposition",
+            "attachment; filename=" + data.fileName
+          );
+          //res.type("application/octet-stream");
           //res.type("image/jpeg");
-          res.setHeader("Transfer-Encoding", "chunked");
+          //res.setHeader("Transfer-Encoding", "chunked");
 
           photoStream
             .on("data", (data_) => {

@@ -23,7 +23,7 @@ export const editPhotoUrl = "edit-photo";
 // Dyno do not sleep
 //export const herokuPingUrl = "/sleep_q23we4rt5";
 // Download original photo from google drive
-export const downloadPhotoUrl = "/download/:photoQuery/:photoName";
+export const downloadPhotoUrl = "/download/:photoQuery/:fileName";
 
 //export const photoWidths = [400, 800, 1200, 1600, 1900];
 //export const photoHeights = [300, 600, 700, 900, 1000];
