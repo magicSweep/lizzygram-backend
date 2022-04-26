@@ -1,12 +1,10 @@
 import { compose, set, elif, justReturn } from "fmagic";
 import { photoSizes } from "../../config";
 import {
-  AddPhotoData,
-  EditPhotoData,
   WebSecureUrl,
   Width,
-  PhotoFieldsToUpdateOnAdd,
-  PhotoFieldsToUpdateOnEdit,
+  //PhotoFieldsToUpdateOnAdd,
+  //PhotoFieldsToUpdateOnEdit,
 } from "../../types";
 import { getYearsOld } from "../../utils/app";
 
@@ -56,7 +54,7 @@ const getIconSrc = getIconSrc_(photoSizes);
 
 const getSrc = getSrc_(photoSizes);
 
-export const makePhotoFieldsToUpdateOnAdd = (data: AddPhotoData) =>
+/* export const makePhotoFieldsToUpdateOnAdd = (data: WorkerPhotoData) =>
   compose<unknown, PhotoFieldsToUpdateOnAdd>(
     () => ({}),
     set("base64", data.base64String),
@@ -71,7 +69,7 @@ export const makePhotoFieldsToUpdateOnAdd = (data: AddPhotoData) =>
     set("isActive", true)
   )();
 
-export const makePhotoFieldsToUpdateOnEdit = (data: EditPhotoData) =>
+export const makePhotoFieldsToUpdateOnEdit = (data: WorkerPhotoData) =>
   compose<unknown, PhotoFieldsToUpdateOnEdit>(
     () => makePhotoFieldsToUpdateOnAdd(data),
     elif(
@@ -97,3 +95,4 @@ export const makePhotoFieldsToUpdateOnEdit = (data: EditPhotoData) =>
       justReturn
     )
   )();
+ */

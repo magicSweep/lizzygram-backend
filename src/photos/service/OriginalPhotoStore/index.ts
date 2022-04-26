@@ -4,7 +4,8 @@ import {
   uploadImage,
   updateImageFile,
   downloadImage,
-} from "./../../../googleDrive";
+  deleteFile,
+} from "./../../../service/googleDrive";
 /* import {
   init as initDrive,
   isFileExists,
@@ -34,3 +35,6 @@ export const update = (googleDriveId: string, pathToPhoto: Path) => {
 export const download = (fileId: string, destPath: Path) => {
   return downloadImage(fileId, destPath);
 };
+
+//deleteFile
+export const remove = deleteFile;

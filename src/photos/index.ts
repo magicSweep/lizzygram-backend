@@ -1,7 +1,10 @@
-export { addPhotoMiddleware } from "./middleware/AddPhoto";
+export { cleanUpMiddleware } from "./middleware/CleanUp";
 
-export { editPhotoMiddleware } from "./middleware/EditPhoto";
+export { mainMiddleware } from "./middleware/Main";
 
-export { performanceMiddleware } from "./middleware/Performance";
+export {
+  downloadPhotoMiddleware,
+  validateReqParams as downloadValidate,
+} from "./middleware/DownloadPhoto";
 
-export { downloadPhotoMiddleware } from "./middleware/DownloadPhoto";
+export { photoFileFilter, photosDiskStorageOptions, limits } from "./multer";

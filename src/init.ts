@@ -1,50 +1,41 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction, json } from "express";
+import { winstonLogger } from "./service/logger";
 import dotenv from "dotenv";
-import { resolve } from "path";
-import multer from "multer";
+import { getBuildFor } from "lizzygram-common-data";
+import { join, resolve } from "path";
+import multer, { DiskStorageOptions, Options } from "multer";
+import {
+  validateReqParams,
+  validateMulterReqParams,
+} from "./validateReqParams/index";
 import {
   photoFileFilter,
   photosDiskStorageOptions,
   limits,
-  multerMiddleware,
-} from "./multer";
-import {
-  addPhotoMiddleware,
-  editPhotoMiddleware,
-  performanceMiddleware,
+  mainMiddleware,
+  cleanUpMiddleware,
   downloadPhotoMiddleware,
+  downloadValidate,
 } from "./photos";
 import {
-  pathToUploadFilesDir,
+  //cleanupPhotoUrl,
+  //downloadPhotoUrl,
+  // mainPhotoUrl,
   pathToOptimizedPhotosDir,
-  addPhotoUrl,
-  editPhotoUrl,
-  //wherokuPingUrl,
-  downloadPhotoUrl,
+  pathToUploadFilesDir,
 } from "./config";
-import { requestLog as requestLogMiddleware } from "./middleware/requestLog";
-import { errorHandler as globalErrorHandlerMiddleware } from "./middleware/globalErrorHandler";
-//import { downloadOriginalPhoto } from "./middleware/downloadOriginalPhoto";
-import { existsSync, mkdirSync } from "fs";
+import { createReadStream, existsSync, mkdirSync } from "fs";
+import { init as initFirestore } from "./service/firestore/firestore.fake";
+import { init as initGoogleDrive } from "./service/googleDrive/googleDrive.fake";
+import { init as initCloudinary } from "./service/cloudinary/cloudinary.fake";
+import { roleMiddleware, tokenMiddleware, authMiddleware } from "./auth";
+
 // PROTECT
-import cors from "cors";
-import helmet from "helmet";
-import rateLimit from "express-rate-limit";
-/* import { init as initFirestore } from "./firestore/firestore.fake";
-import { init as initGoogleDrive } from "./googleDrive/googleDrive.fake";
-import { init as initCloudinary } from "./cloudinary/cloudinary.fake";
- */
-import { init as initFirestore } from "./firestore";
-import { init as initGoogleDrive } from "./googleDrive";
-import { init as initCloudinary } from "./cloudinary";
-//import { WorkerResponse } from "lizzygram-common-data/dist/types";
-import { winstonLogger } from "./logger";
-import { getBuildFor } from "lizzygram-common-data";
+//import cors from "cors";
+//import helmet from "helmet";
+//import rateLimit from "express-rate-limit";
 
-// web: pm2 start ./dist/src/index.js -i 1 --max-memory-restart 490M
 export const init = async () => {
-  console.log("START_INIT");
-
   // MAKE UPLOADS AND TEMP DIRS
   if (!existsSync(pathToUploadFilesDir)) {
     mkdirSync(pathToUploadFilesDir);
@@ -55,9 +46,6 @@ export const init = async () => {
   }
 
   // SET ENV VARIABLES
-  console.log("INIT", getBuildFor());
-  console.log("ENV", process.env.NODE_ENV);
-
   if (process.env.IENV === "local") {
     if (getBuildFor() === "lizzygram") {
       dotenv.config({ path: resolve(process.cwd(), ".env.lizzygram") });
@@ -65,13 +53,6 @@ export const init = async () => {
       dotenv.config({ path: resolve(process.cwd(), ".env.portfolio") });
     }
   }
-
-  // MULTER
-  const upload = multer({
-    storage: multer.diskStorage(photosDiskStorageOptions),
-    limits,
-    fileFilter: photoFileFilter,
-  }).single("file");
 
   // CLOUDINARY
   initCloudinary();
@@ -82,9 +63,16 @@ export const init = async () => {
   // FIRESTORE
   initFirestore();
 
+  // MULTER
+  const uploadPhotoFile = multer({
+    storage: multer.diskStorage(photosDiskStorageOptions),
+    limits,
+    fileFilter: photoFileFilter,
+  }).single("file");
+
   const app = express();
 
-  app.use(helmet());
+  /* app.use(helmet());
 
   //TODO: add protection
   // CORS
@@ -110,70 +98,153 @@ export const init = async () => {
     //message: "[ERROR 123567]",
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  });
+  }); 
 
-  // LOG REQUEST
-  app.use(requestLogMiddleware(winstonLogger));
+  app.use(apiLimiter);*/
 
-  /* app.get("/", (req, res, next) => {
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <script src="/app.js"></script>
-          <link rel="stylesheet" href="/styles.css">
-          <title>My server</title>
-      </head>
-      <body>
-          <h1>My server</h1>
-          <a download="hello.png" href="/download/kMwibQErO6dDH6gf3entRLqFBop21JpdtwHEsOnaYI9TEFID4qtIErE3vV_vs">Download file</a>
-      </body>
-      </html>
-    `);
-  }); */
-
-  // Photos MIDDLEWAREs
-  app.post(
-    `/${addPhotoUrl}`,
-    apiLimiter,
-    multerMiddleware(upload, winstonLogger),
-    //upload.single("file"),
-    addPhotoMiddleware(winstonLogger)
-  );
-
-  app.post(
-    `/${editPhotoUrl}`,
-    apiLimiter,
-    //upload.single("file"),
-    multerMiddleware(upload, winstonLogger),
-    editPhotoMiddleware(winstonLogger)
-  );
+  app.use(json());
 
   app.get(
-    downloadPhotoUrl,
-    apiLimiter,
-    //upload.single("file"),
-    //multerMiddleware(upload),
-    downloadPhotoMiddleware(winstonLogger)
+    "/",
+    /* validateReqParams(winstonLogger, (body) => {
+      winstonLogger.log("info", "VALIDATE REQUEST PARAMS", {
+        DATA: body,
+      });
+      return true;
+    }), */
+    (req, res, next) => {
+      res.status(200).send(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Document</title>
+        </head>
+        <body>
+          <a href="http://localhost:3009/download?name=hello" download>Download</a
+          >
+        </body>
+      </html>
+      `);
+    }
   );
 
-  /* app.post(
-    "/photo-performance",
-    //apiLimiter,
-    //upload.single("file"),
-    multerMiddleware(upload),
-    performanceMiddleware(winstonLogger)
+  // /main - post - "file"
+  app.post(
+    //mainPhotoUrl,
+    "/main",
+    tokenMiddleware("header", winstonLogger),
+    authMiddleware(winstonLogger),
+    roleMiddleware(winstonLogger),
+    cleanUpMiddleware(winstonLogger),
+    validateMulterReqParams(uploadPhotoFile, winstonLogger),
+    mainMiddleware(winstonLogger)
+  );
+
+  // /cleanup - json - {webImagesInfo: {ids: string[], urls?}, googleDriveId}
+  /*  app.delete(
+    //cleanupPhotoUrl,
+    "/cleanup",
+    authorization(winstonLogger),
+    validateReqParams(winstonLogger, cleanupValidate),
+    cleanUpMiddleware(winstonLogger)
   ); */
 
-  //TODO: add download original photo middleware
-  // how to protect:
-  // - check userUid
-  // - send some cookie to check it request from site
+  app.get(
+    //downloadPhotoUrl /?token=""&id="" /:googleDriveId/:fileName
+    "/download",
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        winstonLogger.log("info", `Download photo from Google drive | stream`, {
+          INFO: {
+            query: req.query,
+            //headers: req.headers,
+          },
+        });
 
-  // GLOBAL_ERROR_HANDLER
-  app.use(globalErrorHandlerMiddleware(winstonLogger));
+        //res.status(200).end();
+        const photoStream = createReadStream(
+          join(process.cwd(), "src/static/12.jpg")
+        );
+
+        res.setHeader(
+          "Content-disposition",
+          "attachment; filename=" + Date.now().toString() + ".jpg"
+        );
+        //res.type("application/octet-stream");
+        //res.type("image/jpeg");
+        //res.setHeader("Transfer-Encoding", "chunked");
+
+        photoStream
+          .on("data", (data_: any) => {
+            res.write(data_);
+          })
+          .on("error", (err: any) => {
+            //console.error("Error downloading file from Google drive.");
+            winstonLogger.log(
+              "error",
+              `Download photo from Google drive | stream`,
+              {
+                INFO: {
+                  ...req.params,
+                  error: err,
+                },
+              }
+            );
+            res.status(500).end();
+          })
+          .on("end", () => {
+            //console.log("Done downloading file from Google drive.");
+            res.status(200).end();
+          });
+      } catch (err) {
+        winstonLogger.log(
+          "error",
+          `Download photo from Google drive | get stream`,
+          {
+            INFO: {
+              ...req.params,
+              error: err,
+            },
+          }
+        );
+        res.status(500).end();
+      }
+    }
+  );
+
+  // /download - query params photoGoogleId, fileName /download/:googleDriveId/:fileName
+  /* app.get(
+    //downloadPhotoUrl /?t=""&id=""&n="" /:googleDriveId/:fileName
+    "/download",
+    tokenMiddleware("query", winstonLogger),
+    authMiddleware(winstonLogger),
+    roleMiddleware(winstonLogger),
+    validateReqParams(winstonLogger, downloadValidate),
+    downloadPhotoMiddleware(winstonLogger)
+  ); */
+
+  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    winstonLogger.log("error", "[GLOBAL_ERROR_HANDLER]", {
+      METHOD: req.method,
+      PATH: req.path,
+      REQUEST_BODY: req.body,
+      REQUEST_QUERY: req.query,
+      ERROR: err,
+    });
+
+    /* const json: WorkerResponse = {
+        status: "error",
+      }; */
+
+    // 401 - unauthorized
+    // 400 - bad request
+    // 201 - created
+    // 500 - server error
+    res.status(500).end();
+  });
 
   return app;
 };

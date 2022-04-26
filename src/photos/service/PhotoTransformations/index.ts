@@ -1,24 +1,34 @@
 import { Path, Width } from "../../../types";
 import {
-  makeBase64,
+  makeBase64 as makeBase64String,
   getPhotoInfo as getPhotoInfo_,
   resizeMany,
-} from "./../../../sharp";
-import {
-  makePhotoName,
-  getFileNameWithoutExtension,
-} from "./PhotoTransformations.helper";
+} from "./../../../service/sharp";
+import { makePaths_ } from "./PhotoTransformations.helper";
 import { pathToOptimizedPhotosDir, photoSizes } from "../../../config";
+import { PhotoTransformations } from "./types";
 
 // base64String, aspectRatio, imageExtention
 // makeOptimizedByWidthPhotoFiles
 
-export const getPhotoInfo = (pathToPhoto: Path) => getPhotoInfo_(pathToPhoto);
+export const makeOptimizedPhotos_: (
+  desiredPhotoSizes: { width: number; height: number }[],
+  makePaths: (fileName: string) => Map<number, string>
+) => PhotoTransformations["makeOptimizedPhotos"] =
+  (desiredPhotoSizes, makePaths) => async (props) => {
+    const optimizedPhotosPaths = makePaths(props.photoFileName);
 
-export const makeBase64String = (pathToImage: Path, isInverted: boolean) =>
-  makeBase64(pathToImage, isInverted);
+    return {
+      optimizedImageInfo: await resizeMany({
+        desiredPhotoSizes,
+        resultPaths: optimizedPhotosPaths,
+        ...props,
+      }),
+      optimizedPhotosPaths,
+    };
+  };
 
-export const makeOptimizedByWidthPhotoFiles = (
+/* export const makeOptimizedByWidthPhotoFiles = (
   resultPaths: Map<number, Path>,
   currentPhotoSize: { width: number; height: number },
   isInverted: boolean,
@@ -31,28 +41,13 @@ export const makeOptimizedByWidthPhotoFiles = (
     isInverted,
     desiredPhotoSizes,
     pathToOriginalImage
-  );
+  ); */
 
-export const makePaths_ =
-  (
-    photoSizes: { width: number; height: number }[],
-    pathToOptimizedPhotosDir: string
-  ) =>
-  (photoFileName: string) => {
-    //we make pathsFileSystem: Map<width, path>
+const makePaths = makePaths_(photoSizes, pathToOptimizedPhotosDir);
 
-    const photoname = getFileNameWithoutExtension(photoFileName);
+export const makePhotoInfo: PhotoTransformations["makePhotoInfo"] =
+  getPhotoInfo_;
 
-    const paths: Map<Width, Path> = new Map();
+export const makeBase64: PhotoTransformations["makeBase64"] = makeBase64String;
 
-    for (let sizes of photoSizes) {
-      paths.set(
-        sizes.width,
-        `${pathToOptimizedPhotosDir}/${makePhotoName(sizes.width, photoname)}`
-      );
-    }
-
-    return paths;
-  };
-
-export const makePaths = makePaths_(photoSizes, pathToOptimizedPhotosDir);
+export const makeOptimizedPhotos = makeOptimizedPhotos_(photoSizes, makePaths);

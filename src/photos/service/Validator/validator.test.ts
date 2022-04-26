@@ -1,5 +1,5 @@
 import {
-  isValidDate,
+  /*  isValidDate,
   isValidUserUid,
   isValidPhotoID,
   isValidTags,
@@ -7,11 +7,70 @@ import {
   isValidDesc,
   isValidPhotoQuery,
   isValidPhotoDbRecordOnAdd,
-  isValidPhotoDbRecordOnEdit,
+  isValidPhotoDbRecordOnEdit, */
+  isValidPhotoFile,
 } from ".";
 
-describe("Validator", () => {
-  describe("isValidDate", () => {
+describe("isValidPhotoFile", () => {
+  const possibilities = [
+    {
+      count: 0,
+      photoFile: undefined as any,
+      expected: "Неверный тип файла - undefined",
+    },
+    // mimetype, size
+    {
+      count: 1,
+      photoFile: {
+        mimetype: "application/json",
+        size: 123,
+      },
+      expected:
+        "Файл должен быть типа: jpeg, png, jpg, webp | application/json",
+    },
+    /*  {
+      count: 2,
+      photoFile: {
+        mimetype: "image/png",
+        size: 120001024,
+      },
+      expected: "Максимальный размер файла 21 Mb. | 120001024",
+    }, */
+
+    {
+      count: 3,
+      photoFile: null,
+      expected: "Неверный тип файла - null",
+    },
+
+    {
+      count: 4,
+      photoFile: {},
+      expected: "Неверный тип файла - {}",
+    },
+
+    {
+      count: 5,
+      photoFile: 13,
+      expected: "Неверный тип файла - 13",
+    },
+
+    {
+      count: 6,
+      photoFile: {
+        mimetype: "image/png",
+        size: 12001024,
+      },
+      expected: true,
+    },
+  ];
+
+  test.each(possibilities)(" - ${count}", ({ count, photoFile, expected }) => {
+    expect(isValidPhotoFile(photoFile)).toBe(expected);
+  });
+});
+
+/*   describe("isValidDate", () => {
     const possibilities = [
       { count: 0, date: undefined, expected: true },
       {
@@ -183,67 +242,6 @@ describe("Validator", () => {
     });
   });
 
-  describe("isValidPhotoFile", () => {
-    const possibilities = [
-      {
-        count: 0,
-        photoFile: undefined as any,
-        expected: "Неверный тип файла - undefined",
-      },
-      // mimetype, size
-      {
-        count: 1,
-        photoFile: {
-          mimetype: "application/json",
-          size: 123,
-        },
-        expected:
-          "Файл должен быть типа: jpeg, png, jpg, webp | application/json",
-      },
-      /*  {
-        count: 2,
-        photoFile: {
-          mimetype: "image/png",
-          size: 120001024,
-        },
-        expected: "Максимальный размер файла 21 Mb. | 120001024",
-      }, */
-
-      {
-        count: 3,
-        photoFile: null,
-        expected: "Неверный тип файла - null",
-      },
-
-      {
-        count: 4,
-        photoFile: {},
-        expected: "Неверный тип файла - {}",
-      },
-
-      {
-        count: 5,
-        photoFile: 13,
-        expected: "Неверный тип файла - 13",
-      },
-
-      {
-        count: 6,
-        photoFile: {
-          mimetype: "image/png",
-          size: 12001024,
-        },
-        expected: true,
-      },
-    ];
-
-    test.each(possibilities)(
-      " - ${count}",
-      ({ count, photoFile, expected }) => {
-        expect(isValidPhotoFile(photoFile)).toBe(expected);
-      }
-    );
-  });
 
   describe("isValidPhotoDbRecordOnAdd", () => {
     const possibilities = [
@@ -358,4 +356,4 @@ describe("Validator", () => {
       }
     );
   });
-});
+ */

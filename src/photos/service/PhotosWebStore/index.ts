@@ -2,7 +2,7 @@ import {
   init as initCloudinary,
   uploadMany,
   deleteMany,
-} from "../../../cloudinary";
+} from "../../../service/cloudinary";
 /* import {
   init as initCloudinary,
   uploadMany,
@@ -14,15 +14,13 @@ import {
   PhotoWebId,
   WebSecureUrl,
   WebImageInfo,
-  WebImagesInfo,
 } from "../../../types";
+import { PhotosWebStore } from "./types";
+import { WebImagesInfo } from "lizzygram-common-data/dist/types";
 
-export const init = initCloudinary;
+export const init: PhotosWebStore["init"] = initCloudinary;
 
-export const uploadPhotos = (pathsToPhotos: Path[]) =>
-  uploadMany(pathsToPhotos);
-
-export const makeWebImagesInfo = (
+const makeWebImagesInfo = (
   imagesInfo: WebImageInfo[],
   pathsByWidths: Map<Width, Path>
 ): WebImagesInfo => {
@@ -46,10 +44,15 @@ export const makeWebImagesInfo = (
   return { ids, urls };
 };
 
-export const removePhotos = (publicIds: string[]) => {
-  deleteMany(publicIds).catch((err) => {
-    console.error(
-      `Can't delete cloudinary photo file - ${publicIds} | ${err.message}`
-    );
-  });
+export const uploadPhotos: PhotosWebStore["uploadPhotos"] = async (
+  pathsToPhotos: Path[],
+  pathsByWidths: Map<Width, Path>
+) => {
+  const webImagesInfo = await uploadMany(pathsToPhotos);
+
+  console.log("UPLOAD PHOTOS", webImagesInfo);
+
+  return makeWebImagesInfo(webImagesInfo, pathsByWidths);
 };
+
+export const removePhotos: PhotosWebStore["removePhotos"] = deleteMany;

@@ -20,6 +20,8 @@ import {
 } from "lizzygram-common-data";
 //import {} from "multer";
 
+export const isValidPhotoFile = isValidPhotoFileBackend;
+
 export const isValidGoogleDriveId = (id: string) => {
   if (typeof id !== "string") return "Google drive id must be string";
 
@@ -28,7 +30,7 @@ export const isValidGoogleDriveId = (id: string) => {
   return true;
 };
 
-export const isValidPhotoDbRecord = (
+/* export const isValidPhotoDbRecord = (
   photoId: string,
   photo: Photo<FirestoreDate> | undefined,
   userUid: string
@@ -99,7 +101,7 @@ export const isValidPhotoQuery = cond<string, string | true>([
   ],
   [
     (photoQuery: string) =>
-      regex(photoQuery, { pattern: /[a-zA-Z0-9-_]*/ }) === false,
+      regex(photoQuery, { pattern: /[a-zA-Z0-9-_]/ }) === false,
     (photoQuery: string) => {
       return `Bad symbols in photoQuery... | ${JSON.stringify(photoQuery)}`;
     },
@@ -121,7 +123,7 @@ export const isValidUserUid = cond<string | undefined, string | boolean>([
     },
   ],
   [
-    (userUid: string) => regex(userUid, { pattern: /[a-zA-Z0-9]*/ }) === false,
+    (userUid: string) => regex(userUid, { pattern: /[a-zA-Z0-9]/ }) === false,
     (userUid: string) => {
       return `Bad symbols in userUid... | ${JSON.stringify(userUid)}`;
     },
@@ -155,8 +157,6 @@ export const isValidDate = (date: DateUTCString | undefined) => {
   return isValidDate_(date);
 };
 
-export const isValidPhotoFile = isValidPhotoFileBackend;
-
 export const isValidDesc = (val: string | undefined) => {
   //console.log("VALIDATE", val);
   //if (val !== undefined && val.length > 1200) return "Слишком длинно...";
@@ -182,3 +182,4 @@ export const isValidTags = elif(
     isValidTags_
   )
 );
+ */

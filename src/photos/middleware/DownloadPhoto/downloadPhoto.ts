@@ -16,13 +16,10 @@ import {
   justReturn,
 } from "fmagic";
 import { Logger } from "winston";
-import { downloadImageStream as downloadImageStream_ } from "../../../googleDrive";
-import { isValidPhotoQuery as isValidPhotoQuery_ } from "../../service/Validator";
+import { downloadImageStream as downloadImageStream_ } from "../../../service/googleDrive";
+//import { isValidPhotoQuery as isValidPhotoQuery_ } from "../../service/Validator";
 
 type DownloadPhotoMiddlewareData = {
-  photoQuery: string;
-  //splittedPhotoQuery: string[];
-  userUid: string;
   googleDriveId: string;
   //extension: string;
   resultDebug: string;
@@ -33,8 +30,56 @@ type DownloadPhotoMiddlewareData = {
 
 export const downloadPhotoMiddleware_ =
   (
-    isValidPhotoQuery: typeof isValidPhotoQuery_,
-    userExists: (userUid: string) => Promise<boolean>,
+    //isValidPhotoQuery: typeof isValidPhotoQuery_,
+    //userExists: (userUid: string) => Promise<boolean>,
+    downloadImageStream: typeof downloadImageStream_
+  ) =>
+  (logger: Logger) =>
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const photoStream = await downloadImageStream(req.params.googleDriveId);
+
+      res.setHeader(
+        "Content-disposition",
+        "attachment; filename=" + req.params.fileName
+      );
+      //res.type("application/octet-stream");
+      //res.type("image/jpeg");
+      //res.setHeader("Transfer-Encoding", "chunked");
+
+      photoStream
+        .on("data", (data_: any) => {
+          res.write(data_);
+        })
+        .on("error", (err: any) => {
+          //console.error("Error downloading file from Google drive.");
+          logger.log("error", `Download photo from Google drive | stream`, {
+            INFO: {
+              ...req.params,
+              error: err,
+            },
+          });
+          res.status(500).end();
+        })
+        .on("end", () => {
+          //console.log("Done downloading file from Google drive.");
+          res.status(200).end();
+        });
+    } catch (err) {
+      logger.log("error", `Download photo from Google drive | get stream`, {
+        INFO: {
+          ...req.params,
+          error: err,
+        },
+      });
+      res.status(500).end();
+    }
+  };
+
+/* export const downloadPhotoMiddleware_ =
+  (
+    //isValidPhotoQuery: typeof isValidPhotoQuery_,
+    //userExists: (userUid: string) => Promise<boolean>,
     downloadImageStream: typeof downloadImageStream_
   ) =>
   (logger: Logger) =>
@@ -42,7 +87,7 @@ export const downloadPhotoMiddleware_ =
     compose(
       // get photo query from request /12weqw23rew.jpeg
       () => ({
-        photoQuery: req.params.photoQuery,
+        googleDriveId: req.params.googleDriveId,
         fileName: req.params.fileName,
       }),
       /*  (photoQuery: string) => ({
@@ -50,9 +95,9 @@ export const downloadPhotoMiddleware_ =
         splittedPhotoQuery: photoQuery.split("."),
       }), */
 
-      // validate
-      cond([
-        /*  [
+// validate
+/* cond([
+          [
           (data: DownloadPhotoMiddlewareData) =>
             data.splittedPhotoQuery.length !== 2,
           (data: DownloadPhotoMiddlewareData) =>
@@ -60,7 +105,7 @@ export const downloadPhotoMiddleware_ =
               ...data,
               resultDebug: `We got wrong photo query format...`,
             }),
-        ], */
+        ], 
         [
           (data: DownloadPhotoMiddlewareData) => {
             data.validation = isValidPhotoQuery(data.photoQuery) as
@@ -75,19 +120,19 @@ export const downloadPhotoMiddleware_ =
             }),
         ],
         [() => true, Next.of],
-      ]),
+      ]),*/
 
-      //http://localhost:3009/download/kMwibQErO6dDH6gf3entRLqFBop21mrIb1q3nD3QGWl0kf97vcVdJ0gm5S6qe/photo_85490.jpeg
-      // parse photo query | query = userUid(28) + googleDriveId(33)
-      map((data: DownloadPhotoMiddlewareData) => ({
+//http://localhost:3009/download/3QGWl0kf97vcVdJ0gm5S6qe/photo_85490.jpeg
+// parse photo query | query = userUid(28) + googleDriveId(33)
+/* map((data: DownloadPhotoMiddlewareData) => ({
         ...data,
         userUid: data.photoQuery.substring(0, 28),
         googleDriveId: data.photoQuery.substring(28),
         //extension: data.splittedPhotoQuery[1],
-      })),
+      })), */
 
-      // check users grants
-      chain(
+// check users grants
+/*  chain(
         compose(
           async (data: DownloadPhotoMiddlewareData) => ({
             ...data,
@@ -105,7 +150,7 @@ export const downloadPhotoMiddleware_ =
             Done.of({ resultDebug: "Error on user check...", error: err })
           )
         )
-      ),
+      ), /
 
       thenDoneFold(
         (data: DownloadPhotoMiddlewareData) => {
@@ -137,10 +182,10 @@ export const downloadPhotoMiddleware_ =
           //res.setHeader("Transfer-Encoding", "chunked");
 
           photoStream
-            .on("data", (data_) => {
+            .on("data", (data_: any) => {
               res.write(data_);
             })
-            .on("error", (err) => {
+            .on("error", (err: any) => {
               //console.error("Error downloading file from Google drive.");
               logger.log("error", `Download photo from Google drive`, {
                 INFO: {
@@ -161,3 +206,4 @@ export const downloadPhotoMiddleware_ =
       // send request to firestore, to check user
       // download photo
     )();
+ */

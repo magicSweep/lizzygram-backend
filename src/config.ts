@@ -18,12 +18,12 @@ export const pathToUploadFilesDir = join(process.cwd(), "upload");
 
 //export const port = 80;
 
-export const addPhotoUrl = "add-photo";
-export const editPhotoUrl = "edit-photo";
+export const mainPhotoUrl = "/main";
+export const cleanupPhotoUrl = "/cleanup";
 // Dyno do not sleep
 //export const herokuPingUrl = "/sleep_q23we4rt5";
 // Download original photo from google drive
-export const downloadPhotoUrl = "/download/:photoQuery/:fileName";
+export const downloadPhotoUrl = "/download/:googleDriveId/:fileName";
 
 //export const photoWidths = [400, 800, 1200, 1600, 1900];
 //export const photoHeights = [300, 600, 700, 900, 1000];
@@ -42,3 +42,19 @@ export const descRegex = /[a-zA-ZА-Яа-я 0-9:?!(),.-]*/;
 export const descMaxLength = 3000;
 
 export const birthDate = new Date("2018-07-07");
+
+export const cleanupCnf = {
+  /* pathToFileWithExpirationData: join(
+    process.cwd(),
+    "src",
+    //"src/photos/middleware/CleanUp",
+    "expiration-date.js"
+  ), */
+  daysToNextCleanup: 7,
+
+  collectionName: "expiration-date",
+  docId: "expired",
+  //const fieldName = "date";
+
+  cleanupServiceUrl: "http://localhost:9001",
+};

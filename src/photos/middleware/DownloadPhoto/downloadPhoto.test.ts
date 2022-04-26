@@ -1,20 +1,17 @@
+import wait from "waait";
 import { downloadPhotoMiddleware_ } from "./downloadPhoto";
 
 const end = jest.fn();
-
-const json = jest.fn(() => ({
-  end,
-}));
 
 const res = {
   write: jest.fn(),
   setHeader: jest.fn(),
   type: jest.fn(),
-  status: () => {
+  status: jest.fn(() => {
     return {
-      json,
+      end,
     };
-  },
+  }),
 };
 
 const log = jest.fn();
@@ -32,35 +29,40 @@ const downloadImageStream = jest.fn(() => Promise.resolve(photoStream));
 describe("downloadPhotoMiddleware", () => {
   const req = {
     params: {
-      photoQuery: "",
+      googleDriveId: "super-id",
+      fileName: "blaaa.jpeg",
     },
   };
   const next = jest.fn();
 
-  const isValidPhotoQuery = jest.fn();
+  const downloadPhotoMiddleware = downloadPhotoMiddleware_(downloadImageStream);
 
-  const userExists = jest.fn();
-
-  const downloadPhotoMiddleware = downloadPhotoMiddleware_(
-    isValidPhotoQuery,
-    userExists,
-    downloadImageStream
-  );
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   test("If all okey we create stream from google drive to client", async () => {
-    req.params.photoQuery = "super-photo.jpeg";
-
-    isValidPhotoQuery.mockReturnValueOnce(true);
-
-    userExists.mockResolvedValueOnce(true);
-
     await downloadPhotoMiddleware(logger as any)(req as any, res as any, next);
 
     expect(downloadImageStream).toHaveBeenCalledTimes(1);
     expect(photoStream.on).toHaveBeenCalledTimes(3);
+
+    /* expect(end).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenNthCalledWith(1, 200); */
   });
 
-  describe("Validation", () => {
+  test("If we got error...", async () => {
+    downloadImageStream.mockRejectedValueOnce("Bad dat error");
+
+    await downloadPhotoMiddleware(logger as any)(req as any, res as any, next);
+
+    expect(end).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenNthCalledWith(1, 500);
+  });
+
+  /*  describe("Validation", () => {
     afterEach(() => {
       jest.clearAllMocks();
     });
@@ -84,12 +86,10 @@ describe("downloadPhotoMiddleware", () => {
           splittedPhotoQuery: ["hello"],
         },
       });
-    }); */
+    }); /
 
-    test("We got not valid photo query", async () => {
-      req.params.photoQuery = "photoQuery";
-
-      isValidPhotoQuery.mockReturnValueOnce("Some bad fat error...");
+      test("We got not valid photo query", async () => {
+      req.params.googleDriveId = "photoQuery";
 
       await downloadPhotoMiddleware(logger as any)(
         req as any,
@@ -137,6 +137,6 @@ describe("downloadPhotoMiddleware", () => {
           validation: true,
         },
       });
-    });
-  });
+    }); 
+  }); */
 });
