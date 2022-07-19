@@ -5,7 +5,8 @@ import {
   resizeMany,
 } from "./../../../service/sharp";
 import { makePaths_ } from "./PhotoTransformations.helper";
-import { pathToOptimizedPhotosDir, photoSizes } from "../../../config";
+import { pathToOptimizedPhotosDir } from "../../../config";
+import { photoSizes } from "lizzygram-common-data";
 import { PhotoTransformations } from "./types";
 
 // base64String, aspectRatio, imageExtention

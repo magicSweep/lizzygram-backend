@@ -1,3 +1,11 @@
+/* import {
+  init as initDrive,
+  isFileExists,
+  uploadImage,
+  updateImageFile,
+  downloadImage,
+  deleteFile,
+} from "./../../../service/googleDrive"; */
 import {
   init as initDrive,
   isFileExists,
@@ -5,14 +13,7 @@ import {
   updateImageFile,
   downloadImage,
   deleteFile,
-} from "./../../../service/googleDrive";
-/* import {
-  init as initDrive,
-  isFileExists,
-  uploadImage,
-  updateImageFile,
-  downloadImage,
-} from "./../../../googleDrive/googleDrive.fake"; */
+} from "magic-data/google.drive";
 import { Path } from "../../../types";
 import { Logger } from "winston";
 

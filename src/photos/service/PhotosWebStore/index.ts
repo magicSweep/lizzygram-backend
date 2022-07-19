@@ -2,12 +2,8 @@ import {
   init as initCloudinary,
   uploadMany,
   deleteMany,
-} from "../../../service/cloudinary";
-/* import {
-  init as initCloudinary,
-  uploadMany,
-  deleteMany,
-} from "../../../cloudinary/cloudinary.fake"; */
+} from "magic-data/cloudinary";
+
 import {
   Width,
   Path,

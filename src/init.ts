@@ -25,9 +25,9 @@ import {
   pathToUploadFilesDir,
 } from "./config";
 import { createReadStream, existsSync, mkdirSync } from "fs";
-import { init as initFirestore } from "./service/firestore/firestore.fake";
-import { init as initGoogleDrive } from "./service/googleDrive/googleDrive.fake";
-import { init as initCloudinary } from "./service/cloudinary/cloudinary.fake";
+import { init as initFirestore } from "magic-data/firestore.fake";
+import { init as initGoogleDrive } from "magic-data/google.drive.fake";
+import { init as initCloudinary } from "magic-data/cloudinary.fake";
 import { roleMiddleware, tokenMiddleware, authMiddleware } from "./auth";
 
 // PROTECT

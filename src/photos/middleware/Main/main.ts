@@ -23,6 +23,7 @@ import {
 } from "./types";
 import { CleanUp, FullCleanUp } from "../../controller/CleanUp/types";
 import {
+  ImgExt,
   MainResponseData,
   WebImagesInfo,
 } from "lizzygram-common-data/dist/types";
@@ -88,7 +89,7 @@ export const mainMiddleware_ =
             const resData: MainResponseData = {
               base64: data.base64String as string,
               aspectRatio: data.photoInfo?.aspectRatio as number,
-              imageExtention: data.photoInfo?.imageExtention as string,
+              imageExtention: data.photoInfo?.imageExtention as ImgExt,
               googleDriveId: data.googleDriveId as string,
               webImagesInfo: {
                 ids: data.webImagesInfo?.ids as string[],

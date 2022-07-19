@@ -1,10 +1,3 @@
-import { DecodedIdToken, getAuth } from "firebase-admin/auth";
-import { AuthUser } from "./types";
+import { getAuthUser as getAuthUser_ } from "magic-data/firebase.auth";
 
-export const getAuthUser = async (token: string): Promise<AuthUser> => {
-  const decodedToken: DecodedIdToken = await getAuth().verifyIdToken(token);
-
-  return {
-    uid: decodedToken.uid,
-  };
-};
+export const getAuthUser = getAuthUser_;
