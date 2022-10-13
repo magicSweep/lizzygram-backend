@@ -16,6 +16,7 @@ const validationMiddleware =
         reqData: {
           reqBody: req.body,
           reqParams: req.params,
+          reqQuery: req.query,
         },
       }),
       (data: ValidationMiddlewareData) => ({

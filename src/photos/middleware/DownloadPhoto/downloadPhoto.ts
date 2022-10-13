@@ -16,17 +16,17 @@ import {
   justReturn,
 } from "fmagic";
 import { Logger } from "winston";
-import { downloadImageStream as downloadImageStream_ } from "../../../service/googleDrive";
+import { downloadImageStream as downloadImageStream_ } from "../../service/OriginalPhotoStore";
 //import { isValidPhotoQuery as isValidPhotoQuery_ } from "../../service/Validator";
 
-type DownloadPhotoMiddlewareData = {
+/* type DownloadPhotoMiddlewareData = {
   googleDriveId: string;
   //extension: string;
   resultDebug: string;
   validation: string | true;
   userExists: boolean;
   fileName: string;
-};
+}; */
 
 export const downloadPhotoMiddleware_ =
   (
@@ -37,11 +37,11 @@ export const downloadPhotoMiddleware_ =
   (logger: Logger) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const photoStream = await downloadImageStream(req.params.googleDriveId);
+      const photoStream = await downloadImageStream(req.query.gid as string);
 
       res.setHeader(
         "Content-disposition",
-        "attachment; filename=" + req.params.fileName
+        "attachment; filename=" + req.query.name
       );
       //res.type("application/octet-stream");
       //res.type("image/jpeg");
@@ -55,7 +55,7 @@ export const downloadPhotoMiddleware_ =
           //console.error("Error downloading file from Google drive.");
           logger.log("error", `Download photo from Google drive | stream`, {
             INFO: {
-              ...req.params,
+              ...req.query,
               error: err,
             },
           });
@@ -68,7 +68,7 @@ export const downloadPhotoMiddleware_ =
     } catch (err) {
       logger.log("error", `Download photo from Google drive | get stream`, {
         INFO: {
-          ...req.params,
+          ...req.query,
           error: err,
         },
       });

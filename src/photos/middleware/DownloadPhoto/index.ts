@@ -1,7 +1,4 @@
-import {
-  downloadImage,
-  downloadImageStream,
-} from "../../../service/googleDrive";
+import { downloadImageStream } from "../../service/OriginalPhotoStore/OriginalPhotoStore.fake";
 //import { exists as userExists } from "../../photos/service/UserDb";
 //import { isValidPhotoQuery } from "../../service/Validator";
 import { downloadPhotoMiddleware_ } from "./downloadPhoto";

@@ -12,6 +12,7 @@ import {
   uploadImage,
   updateImageFile,
   downloadImage,
+  downloadImageStream as downloadImageStream_,
   deleteFile,
 } from "magic-data/google.drive";
 import { Path } from "../../../types";
@@ -39,3 +40,5 @@ export const download = (fileId: string, destPath: Path) => {
 
 //deleteFile
 export const remove = deleteFile;
+
+export const downloadImageStream = downloadImageStream_;

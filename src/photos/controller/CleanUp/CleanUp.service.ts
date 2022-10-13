@@ -5,7 +5,7 @@ import { Fs } from "../../../service/Fs/types";
 import { MainData } from "../../middleware/Main/types";
 import { OriginalPhotoStore } from "../../service/OriginalPhotoStore/types";
 import { PhotosWebStore } from "../../service/PhotosWebStore/types";
-import { CleanUp, StoragesCleanUp } from "./types";
+import { CleanUp, StoragesCleanUp, CleanUpReqData } from "./types";
 
 export const cleanUp_ =
   (removePhoto: Fs["removePhoto"], removePhotos: Fs["removePhotos"]) =>
@@ -44,10 +44,10 @@ export const storagesCleanUp_ =
     removePhotoFromGoogleDrive: OriginalPhotoStore["remove"]
   ) =>
   (logger: Logger) =>
-    compose<MainData, void>(
-      elif<MainData, MainData>(
-        ({ webImagesInfo }: MainData) => webImagesInfo !== undefined,
-        tap(({ webImagesInfo }: MainData) =>
+    compose<CleanUpReqData, void>(
+      elif<CleanUpReqData, CleanUpReqData>(
+        ({ webImagesInfo }: CleanUpReqData) => webImagesInfo !== undefined,
+        tap(({ webImagesInfo }: CleanUpReqData) =>
           removePhotosFromWebStore(webImagesInfo?.ids as string[]).catch(
             (err) => {
               logger.log(
@@ -61,12 +61,12 @@ export const storagesCleanUp_ =
             }
           )
         ),
-        (val: MainData) => val
+        (val: CleanUpReqData) => val
       ),
       // Do we need to delete file from google drive ?
-      elif<MainData, MainData>(
-        ({ googleDriveId }: MainData) => googleDriveId !== undefined,
-        tap(({ googleDriveId }: MainData) =>
+      elif<CleanUpReqData, CleanUpReqData>(
+        ({ googleDriveId }: CleanUpReqData) => googleDriveId !== undefined,
+        tap(({ googleDriveId }: CleanUpReqData) =>
           removePhotoFromGoogleDrive(googleDriveId as string).catch((err) => {
             logger.log(
               "error",
@@ -78,7 +78,7 @@ export const storagesCleanUp_ =
             );
           })
         ),
-        (val: MainData) => val
+        (val: CleanUpReqData) => val
       )
     );
 

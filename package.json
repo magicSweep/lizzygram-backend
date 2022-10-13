@@ -4,6 +4,8 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
+    "real-imports": "jdevelop --cmd=replacer --config=src/config/replacer/real-imports/index.js",
+    "fake-imports": "jdevelop --cmd=replacer --config=src/config/replacer/fake-imports/index.js",
     "compile": "rm -rf ./dist && tsc",
     "sharp:test:compile": "tsc src/service/sharp/test/index.ts",
     "sharp:test:start": "node src/service/sharp/test/index.js",
@@ -37,7 +39,7 @@
     "express": "^4.18.1",
     "express-rate-limit": "^6.4.0",
     "firebase-admin": "^10.0.2",
-    "fmagic": "^1.1.4",
+    "fmagic": "^1.1.5",
     "googleapis": "^92.0.0",
     "helmet": "^5.1.0",
     "jsonwebtoken": "^8.5.1",
@@ -71,7 +73,8 @@
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.0.0",
     "typescript": "^4.7.4",
-    "waait": "^1.0.5"
+    "waait": "^1.0.5",
+    "jdevelop": "^0.1.5"
   },
   "engines": {
     "node": "16.16.0"

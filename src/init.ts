@@ -14,17 +14,21 @@ import {
   limits,
   mainMiddleware,
   cleanUpMiddleware,
+  cleanUpParamsValidate,
   downloadPhotoMiddleware,
   downloadValidate,
 } from "./photos";
 import {
+  cleanupPhotoUrl,
+  downloadPhotoUrl,
+  mainPhotoUrl,
   //cleanupPhotoUrl,
   //downloadPhotoUrl,
   // mainPhotoUrl,
   pathToOptimizedPhotosDir,
   pathToUploadFilesDir,
 } from "./config";
-import { createReadStream, existsSync, mkdirSync } from "fs";
+import { existsSync, mkdirSync } from "fs";
 import { init as initFirestore } from "magic-data/firestore.fake";
 import { init as initGoogleDrive } from "magic-data/google.drive.fake";
 import { init as initCloudinary } from "magic-data/cloudinary.fake";
@@ -123,7 +127,7 @@ export const init = async () => {
           <title>Document</title>
         </head>
         <body>
-          <a href="http://localhost:3009/download?name=hello" download>Download</a
+          <a href="/download/brut.jpeg?gid=123googleId345&token=234token23ksrf" download>Download</a
           >
         </body>
       </html>
@@ -133,13 +137,13 @@ export const init = async () => {
 
   // /main - post - "file"
   app.post(
-    //mainPhotoUrl,
-    "/main",
+    mainPhotoUrl,
     tokenMiddleware("header", winstonLogger),
     authMiddleware(winstonLogger),
     roleMiddleware(winstonLogger),
-    cleanUpMiddleware(winstonLogger),
     validateMulterReqParams(uploadPhotoFile, winstonLogger),
+    // optimize photos middleware
+    // save to web storage middleware
     mainMiddleware(winstonLogger)
   );
 
@@ -152,20 +156,30 @@ export const init = async () => {
     cleanUpMiddleware(winstonLogger)
   ); */
 
-  app.get(
+  app.delete(
+    cleanupPhotoUrl,
+    validateReqParams(winstonLogger, cleanUpParamsValidate),
+    tokenMiddleware("header", winstonLogger),
+    authMiddleware(winstonLogger),
+    roleMiddleware(winstonLogger),
+    cleanUpMiddleware(winstonLogger)
+  );
+
+  /* app.get(
     //downloadPhotoUrl /?token=""&id="" /:googleDriveId/:fileName
-    "/download",
+    "/download/:fileName",
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         winstonLogger.log("info", `Download photo from Google drive | stream`, {
           INFO: {
             query: req.query,
+            params: req.params,
             //headers: req.headers,
           },
         });
 
         //res.status(200).end();
-        const photoStream = createReadStream(
+        /*   const photoStream = createReadStream(
           join(process.cwd(), "src/static/12.jpg")
         );
 
@@ -198,7 +212,9 @@ export const init = async () => {
           .on("end", () => {
             //console.log("Done downloading file from Google drive.");
             res.status(200).end();
-          });
+          }); /
+
+        res.status(200).end();
       } catch (err) {
         winstonLogger.log(
           "error",
@@ -213,18 +229,18 @@ export const init = async () => {
         res.status(500).end();
       }
     }
-  );
+  ); */
 
-  // /download - query params photoGoogleId, fileName /download/:googleDriveId/:fileName
-  /* app.get(
-    //downloadPhotoUrl /?t=""&id=""&n="" /:googleDriveId/:fileName
-    "/download",
+  // /download  /download/:fileName?gid=googleDriveId&token=some-token-323
+  app.get(
+    //downloadPhotoUrl /?t=""&id=""&n="" /:googleDriveId/
+    downloadPhotoUrl,
+    validateReqParams(winstonLogger, downloadValidate),
     tokenMiddleware("query", winstonLogger),
     authMiddleware(winstonLogger),
     roleMiddleware(winstonLogger),
-    validateReqParams(winstonLogger, downloadValidate),
     downloadPhotoMiddleware(winstonLogger)
-  ); */
+  );
 
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     winstonLogger.log("error", "[GLOBAL_ERROR_HANDLER]", {
@@ -232,6 +248,7 @@ export const init = async () => {
       PATH: req.path,
       REQUEST_BODY: req.body,
       REQUEST_QUERY: req.query,
+      REQUEST_PARAMS: req.params,
       ERROR: err,
     });
 

@@ -28,9 +28,9 @@ const downloadImageStream = jest.fn(() => Promise.resolve(photoStream));
 
 describe("downloadPhotoMiddleware", () => {
   const req = {
-    params: {
-      googleDriveId: "super-id",
-      fileName: "blaaa.jpeg",
+    query: {
+      gid: "super-id",
+      name: "blaaa.jpeg",
     },
   };
   const next = jest.fn();

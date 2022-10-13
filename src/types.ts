@@ -7,7 +7,7 @@ export type OriginalPhotoInfo = {
 
 export type PhotoInfo = {
   aspectRatio: number;
-  imageExtention: string;
+  imageExtension: string;
   isInverted: boolean;
   width: number;
   height: number;

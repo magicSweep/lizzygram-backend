@@ -206,7 +206,7 @@ export const getPhotoInfo = compose<Path, Promise<PhotoInfo>>(
         isInverted
       ),
       isInverted,
-      imageExtention: format,
+      imageExtension: format,
       width,
       height,
       size,

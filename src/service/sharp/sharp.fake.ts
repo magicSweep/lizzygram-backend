@@ -1,7 +1,7 @@
 import wait from "waait";
 import { Path, PhotoInfo, TransformedImageInfo } from "../../types";
 
-// base64String, aspectRatio, imageExtention
+// base64String, aspectRatio, imageExtension
 // makeOptimizedByWidthPhotoFiles
 
 export const getPhotoInfo = async (pathToPhoto: Path): Promise<PhotoInfo> => {
@@ -9,7 +9,7 @@ export const getPhotoInfo = async (pathToPhoto: Path): Promise<PhotoInfo> => {
 
   return {
     aspectRatio: 1.8,
-    imageExtention: "jpeg",
+    imageExtension: "jpeg",
     isInverted: false,
     width: 1920,
     height: 1080,

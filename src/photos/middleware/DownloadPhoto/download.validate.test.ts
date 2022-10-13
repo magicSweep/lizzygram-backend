@@ -2,16 +2,29 @@ import { validateReqParams } from "./download.validate";
 
 describe("validateReqParams - /download validate request params", () => {
   test.each([
-    { count: 0, reqData: {}, expected: "No googleDriveId or fileName" },
     {
       count: 1,
       reqData: { reqParams: {} },
-      expected: "No googleDriveId or fileName",
+      expected: "No or bad query params...",
     },
     {
       count: 2,
-      reqData: { reqBody: { googleDriveId: "blala" } },
-      expected: "No googleDriveId or fileName",
+      reqData: { reqParams: { name: "blala" } },
+      expected: "No or bad query params...",
+    },
+    {
+      count: 3,
+      reqData: {
+        reqQuery: { name: "blala", gid: "googleId" },
+      },
+      expected: "No or bad query params...",
+    },
+    {
+      count: 4,
+      reqData: {
+        reqQuery: { name: "blala", gid: "googleId", token: "super_token" },
+      },
+      expected: true,
     },
   ])(
     "#$count -- If not validated we get error msg in return.",

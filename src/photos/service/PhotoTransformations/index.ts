@@ -9,7 +9,7 @@ import { pathToOptimizedPhotosDir } from "../../../config";
 import { photoSizes } from "lizzygram-common-data";
 import { PhotoTransformations } from "./types";
 
-// base64String, aspectRatio, imageExtention
+// base64String, aspectRatio, imageExtension
 // makeOptimizedByWidthPhotoFiles
 
 export const makeOptimizedPhotos_: (

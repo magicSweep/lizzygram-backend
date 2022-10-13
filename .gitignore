@@ -21,6 +21,8 @@
 /uploadedFiles/
 /credentials/
 .env
+.env.lizzygram
+.env.portfolio
 
 upload/
 temp/

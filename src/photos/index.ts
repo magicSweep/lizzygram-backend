@@ -1,4 +1,4 @@
-export { cleanUpMiddleware } from "./middleware/CleanUp";
+export { cleanUpMiddleware, cleanUpParamsValidate } from "./middleware/CleanUp";
 
 export { mainMiddleware } from "./middleware/Main";
 

@@ -16,7 +16,7 @@ import { WebImagesInfo } from "lizzygram-common-data/dist/types";
 
 export const init: PhotosWebStore["init"] = initCloudinary;
 
-const makeWebImagesInfo = (
+export const makeWebImagesInfo = (
   imagesInfo: WebImageInfo[],
   pathsByWidths: Map<Width, Path>
 ): WebImagesInfo => {

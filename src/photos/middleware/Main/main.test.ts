@@ -23,7 +23,7 @@ const makePhotoInfo = jest.fn((data: any) =>
       ...data,
       photoInfo: {
         aspectRatio: 1.6,
-        imageExtention: "jpeg",
+        imageExtension: "jpeg",
       },
     })
   )
@@ -103,7 +103,7 @@ describe("mainMiddleware_", () => {
     expect(fullCleanUp_).toHaveBeenCalledTimes(0);
 
     expect(logger.log).toHaveBeenCalledTimes(1);
-    //expect(logger.log).toHaveBeenNthCalledWith(1, "info", "MAKE MIDDLEWARE SUCCESS", {"DATA": {"googleDriveId": "googleDriveId", "makeBase64": "makeBase64", "photoInfo": {"aspectRatio": 1.6, "imageExtention": "jpeg"}, "reqInfo": {"photoFile": "file"}, "webImagesInfo": {"ids": ["300", "400", "500"], "urls": Map {300 => "/url-300", 400 => "/url-400", 500 => "/url-500"}}}});
+    //expect(logger.log).toHaveBeenNthCalledWith(1, "info", "MAKE MIDDLEWARE SUCCESS", {"DATA": {"googleDriveId": "googleDriveId", "makeBase64": "makeBase64", "photoInfo": {"aspectRatio": 1.6, "imageExtension": "jpeg"}, "reqInfo": {"photoFile": "file"}, "webImagesInfo": {"ids": ["300", "400", "500"], "urls": Map {300 => "/url-300", 400 => "/url-400", 500 => "/url-500"}}}});
 
     expect(json).toHaveBeenCalledTimes(1);
     expect(json).toHaveBeenNthCalledWith(1, {
@@ -111,7 +111,7 @@ describe("mainMiddleware_", () => {
         aspectRatio: 1.6,
         base64: undefined,
         googleDriveId: "googleDriveId",
-        imageExtention: "jpeg",
+        imageExtension: "jpeg",
         webImagesInfo: {
           ids: ["300", "400", "500"],
           urls: [

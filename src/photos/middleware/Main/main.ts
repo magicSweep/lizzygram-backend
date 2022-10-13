@@ -89,7 +89,7 @@ export const mainMiddleware_ =
             const resData: MainResponseData = {
               base64: data.base64String as string,
               aspectRatio: data.photoInfo?.aspectRatio as number,
-              imageExtention: data.photoInfo?.imageExtention as ImgExt,
+              imageExtension: data.photoInfo?.imageExtension as ImgExt,
               googleDriveId: data.googleDriveId as string,
               webImagesInfo: {
                 ids: data.webImagesInfo?.ids as string[],
@@ -200,7 +200,7 @@ export const mainMiddleware_ =
               data: {
                 base64: data.base64String,
                 aspectRatio: data.photoInfo?.aspectRatio,
-                imageExtention: data.photoInfo?.imageExtention,
+                imageExtension: data.photoInfo?.imageExtension,
                 googleDriveId: data.googleDriveId,
                 webStorageFilesIds: data.webImagesInfo?.ids,
                 webStorageFilesUrls: data.webImagesInfo?.urls,

@@ -1,4 +1,4 @@
-import {
+/* import {
   getExpirationDateFromFirestore_,
   //getExpirationDateFromFs,
   saveNewExpirationDateToFirestore_,
@@ -8,32 +8,18 @@ import {
   //(data.expirationDateFromFirestore as Date) < expirationData
   isDateExpired,
 } from "./cleanup.helper";
-import { getOne, updateOne } from "../../../service/firestore";
-import { onCleanup_, getExpirationDate, setExpirationDate } from "./cleanup";
+import { getOne, updateOne } from "magic-data/firestore";
+import { onCleanup_ } from "./cleanup"; */
 //import { existsSync } from "fs";
 import { Logger } from "winston";
 import { Request, Response, NextFunction } from "express";
-
-const getExpirationDateFromFirestore = getExpirationDateFromFirestore_(getOne);
-const saveNewExpirationDateToFirestore =
-  saveNewExpirationDateToFirestore_(updateOne);
-
-const onCleanup = onCleanup_(
-  getExpirationDate,
-  setExpirationDate,
-  getExpirationDateFromFirestore,
-  //getExpirationDateFromFs,
-  saveNewExpirationDateToFirestore,
-  // saveNewExpirationDateToFs,
-  sendRequestToCleanupService,
-  calcNewExpirationDate,
-  isDateExpired
-  //existsSync
-);
+import { storagesCleanUp } from "../../controller/CleanUp";
 
 export const cleanUpMiddleware =
   (logger: Logger) => (req: Request, res: Response, next: NextFunction) => {
-    onCleanup(logger);
+    storagesCleanUp(logger)(req.body);
 
-    next();
+    res.status(200).end();
   };
+
+export { cleanUpParamsValidate } from "./cleanUp.validate";

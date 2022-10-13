@@ -1,4 +1,4 @@
-import { uploadPhotos } from "../../../service/PhotosWebStore";
+import { uploadPhotos } from "../../../service/PhotosWebStore/PhotosWebStore.fake";
 import {
   makeBase64 as makeBase64String,
   makeOptimizedPhotos,
@@ -10,7 +10,7 @@ import {
   makeOptimizedPhotosAndSaveToWeb_,
   savePhotoToOriginalPhotoStorage_,
 } from "./main.controller";
-import { save as saveToGoogleDrive } from "../../../service/OriginalPhotoStore";
+import { save as saveToGoogleDrive } from "../../../service/OriginalPhotoStore/OriginalPhotoStore.fake";
 
 export const makeOptimizedPhotosAndSaveToWeb = makeOptimizedPhotosAndSaveToWeb_(
   makeOptimizedPhotos,

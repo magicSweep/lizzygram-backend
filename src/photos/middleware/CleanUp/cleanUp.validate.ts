@@ -10,18 +10,29 @@ export type ValidateReqParamsData = ValidateReqParamsProps & {
 };
 
 // reqParams - googleDirveId, fileName
-export const validateReqParams: ValidateReqParams = cond<
+export const cleanUpParamsValidate: ValidateReqParams = cond<
   ValidateReqParamsProps,
   boolean | string
 >([
   [
-    ({ reqQuery }: ValidateReqParamsProps) =>
-      reqQuery === undefined ||
-      typeof reqQuery.name !== "string" ||
-      typeof reqQuery.gid !== "string" ||
-      typeof reqQuery.token !== "string",
-    () => "No or bad query params...",
+    ({ reqBody }: ValidateReqParamsProps) =>
+      reqBody === undefined ||
+      reqBody.googleDriveId === undefined ||
+      reqBody.webImagesInfo === undefined,
+    () => "Bad request body...",
   ],
+  [
+    ({ reqBody }: ValidateReqParamsProps) =>
+      typeof reqBody.googleDriveId !== "string",
+    () => "googleDriveId must be string...",
+  ],
+  [
+    ({ reqBody }: ValidateReqParamsProps) =>
+      Array.isArray(reqBody.webImagesInfo.ids) !== true ||
+      typeof reqBody.webImagesInfo.ids[0] !== "string",
+    () => "webImagesInfo ids must be array of strings...",
+  ],
+
   [() => true, () => true],
 ]);
 /* elif(

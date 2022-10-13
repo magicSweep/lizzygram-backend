@@ -8,7 +8,7 @@ describe("makePhotoInfo_", () => {
   const getPhotoInfo = jest.fn((pathToPhoto: string) =>
     Promise.resolve({
       aspectRatio: 1.8,
-      imageExtention: "tiff",
+      imageExtension: "tiff",
       isInverted: true,
       width: 400,
       height: 400,
@@ -36,7 +36,7 @@ describe("makePhotoInfo_", () => {
       photoInfo: {
         aspectRatio: 1.8,
         height: 400,
-        imageExtention: "tiff",
+        imageExtension: "tiff",
         isInverted: true,
         width: 400,
       },
